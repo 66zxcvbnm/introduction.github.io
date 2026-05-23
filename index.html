@@ -16,31 +16,25 @@
             --font-family: 'Noto Sans KR', sans-serif;
         }
 
-        /* 브라우저 기본 여백 제거 및 전체 화면 고정 */
         html, body {
             margin: 0; padding: 0; width: 100%; height: 100%; 
-            overflow: hidden; /* 바디 스크롤 절대 금지 */
+            overflow: hidden; 
             background-color: #111; color: #fff; font-family: sans-serif;
         }
 
         /* --- 완벽하게 고정된 왼쪽 패널 --- */
         #sidebar-wrap {
-            position: absolute;
-            top: 0; left: 0; bottom: 0; /* 화면 왼쪽 위아래 꽉 채우기 */
-            width: 400px;
+            position: absolute; top: 0; left: 0; bottom: 0; width: 400px;
             display: flex; flex-direction: column;
             background: #333; border-right: 2px solid #555; z-index: 1000;
         }
 
-        /* 스크롤은 오직 이 안에서만 발생 */
         #controls {
             flex: 1; overflow-y: auto; padding: 20px; box-sizing: border-box;
         }
 
-        /* 무조건 하단에 박히는 저장 버튼 구역 */
         #save-section {
-            position: relative;
-            flex-shrink: 0; padding: 20px; background: #222; border-top: 1px solid #444;
+            position: relative; flex-shrink: 0; padding: 20px; background: #222; border-top: 1px solid #444;
         }
 
         #controls h2 { margin-top: 0; font-size: 1.2rem; border-bottom: 1px solid #555; padding-bottom: 10px; }
@@ -63,23 +57,17 @@
         }
         button.save-btn:hover { background: #45a049; }
 
-        /* --- 오른쪽 미리보기 화면 (독립적 스크롤 영역) --- */
+        /* --- 오른쪽 미리보기 화면 --- */
         #preview-container {
-            position: absolute;
-            top: 0; bottom: 0; right: 0; left: 400px; /* 사이드바를 제외한 나머지 화면 꽉 채우기 */
-            overflow: auto; /* 화면이 좁으면 상하좌우 스크롤 생성 */
-            display: flex; align-items: center; justify-content: center;
-            padding: 40px; box-sizing: border-box;
-            background-color: #2c2c2c;
+            position: absolute; top: 0; bottom: 0; right: 0; left: 400px;
+            overflow: auto; display: flex; align-items: center; justify-content: center;
+            padding: 40px; box-sizing: border-box; background-color: #2c2c2c;
         }
 
-        /* 캔버스 축소 공간 (크기를 약간 더 줄여 한눈에 잘 보이게 함) */
         .canvas-scaler {
-            width: 756px; height: 605.5px; /* 2160x1730의 0.35배 */
-            flex-shrink: 0; position: relative; margin: auto;
+            width: 756px; height: 605.5px; flex-shrink: 0; position: relative; margin: auto;
         }
 
-        /* 실제 저장될 2160x1730 캔버스 */
         #canvas-area {
             width: 2160px; height: 1730px;
             background-color: var(--bg-color); background-size: cover; background-position: center;
@@ -133,12 +121,14 @@
         }
         .tag-badge.selected { background-color: var(--text-color); color: var(--paper-color); }
 
+        /* 자유작성란: rgba 투명도 버그 방지를 위해 단색 처리 */
         .free-text-area {
             flex: 1; font-size: 35px; white-space: pre-wrap; line-height: 1.6;
-            padding: 20px; background-color: rgba(0,0,0,0.03); border-radius: 15px;
+            padding: 20px; background-color: #f5f5f5; border-radius: 15px;
+            border: 2px solid #ddd;
         }
 
-        /* --- 사이드 첨부사진 구역 (마스킹 테이프 프레임) --- */
+        /* --- 사이드 첨부사진 구역 --- */
         #side-photos-wrap {
             position: absolute; right: 3%; top: 5%; width: 25%; height: 90%;
             display: flex; flex-direction: column; gap: 40px; z-index: 50;
@@ -148,18 +138,18 @@
             position: relative; background-color: var(--paper-color); 
             padding: 15px 15px 40px 15px; box-sizing: border-box;
             border: 2px solid #ccc; box-shadow: 3px 3px 15px rgba(0,0,0,0.2);
-            display: none; /* 파일 첨부 시 보임 */
+            display: none; 
         }
 
-        /* 조금 더 디테일한 마스킹 테이프 효과 */
+        /* 마스킹 테이프도 단색에 가깝게 수정 */
         .attached-photo-group::before {
             content: ''; position: absolute; top: -12px; left: 50%;
             transform: translateX(-50%) rotate(-4deg);
             width: 100px; height: 28px;
-            background-color: rgba(245, 245, 220, 0.85); /* 옅은 상아색 반투명 */
+            background-color: #f5f5dc; 
             box-shadow: 0 1px 3px rgba(0,0,0,0.2); z-index: 10;
-            border-left: 2px dotted rgba(0,0,0,0.1); /* 테이프 찢어진 단면 디테일 */
-            border-right: 2px dotted rgba(0,0,0,0.1);
+            border-left: 2px dotted #ccc; 
+            border-right: 2px dotted #ccc;
         }
 
         .photo-img-viewport {
@@ -188,11 +178,11 @@
 
             <div class="control-group">
                 <label>파일철 색상</label>
-                <input type="color" id="folderColor" value="#8b0000">
+                <input type="color" id="folderColor" value="#508d81">
                 <label style="margin-top:10px;">종이 색상</label>
                 <input type="color" id="paperColor" value="#ffffff">
                 <label style="margin-top:10px;">글자 색상</label>
-                <input type="color" id="textColor" value="#000000">
+                <input type="color" id="textColor" value="#508d81">
             </div>
 
             <div class="control-group">
@@ -243,7 +233,7 @@
             </div>
 
             <div class="control-group">
-                <label>성향</label>
+                <label>성향 (자유 선택)</label>
                 <div class="checkbox-group" id="traitChecks">
                     <input type="checkbox" id="t1" value="HL"><label for="t1">HL</label>
                     <input type="checkbox" id="t2" value="BL"><label for="t2">BL</label>
@@ -256,7 +246,7 @@
             </div>
 
             <div class="control-group">
-                <label>탐라</label>
+                <label>탐라 (자유 선택)</label>
                 <div class="checkbox-group" id="tlChecks">
                     <input type="checkbox" id="tl1" value="구독"><label for="tl1">구독</label>
                     <input type="checkbox" id="tl2" value="소비"><label for="tl2">소비</label>
@@ -268,7 +258,6 @@
                     <input type="checkbox" id="tl8" value="마음"><label for="tl8">마음</label>
                     <input type="checkbox" id="tl9" value="탐라 대화"><label for="tl9">탐라 대화</label>
                     <input type="checkbox" id="tl10" value="프롬프트"><label for="tl10">프롬프트</label>
-                    <input type="checkbox" id="tl11" value="AI 이미지"><label for="tl10">AI 이미지</label>
                 </div>
             </div>
 
@@ -463,19 +452,31 @@
         };
         [1, 2, 3, 4].forEach(handleAttach);
 
+        // 캡처 깨짐 방지를 위한 딜레이 추가 함수
         function saveImage() {
             const canvasArea = document.getElementById('canvas-area');
+            
+            // 1. 캡처를 위해 크기를 원래대로(1:1) 되돌림
             canvasArea.style.transform = 'scale(1)'; 
             
-            html2canvas(canvasArea, {
-                scale: 1, useCORS: true, backgroundColor: null
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = '자기소개표.png';
-                link.href = canvas.toDataURL('image/png', 1.0);
-                link.click();
-                canvasArea.style.transform = 'scale(0.35)'; 
-            });
+            // 2. 브라우저가 화면을 다시 계산할 시간을 아주 잠깐(0.1초) 줌 (분리/깨짐 방지 핵심!)
+            setTimeout(() => {
+                html2canvas(canvasArea, {
+                    scale: 1, 
+                    useCORS: true, 
+                    backgroundColor: null,
+                    scrollX: 0, /* 스크롤 오프셋으로 인한 깨짐 방지 */
+                    scrollY: 0
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = '자기소개표.png';
+                    link.href = canvas.toDataURL('image/png', 1.0);
+                    link.click();
+                    
+                    // 3. 캡처 완료 후 다시 축소 상태로 복귀
+                    canvasArea.style.transform = 'scale(0.35)'; 
+                });
+            }, 100); // 100 밀리초 대기
         }
     </script>
 </body>
