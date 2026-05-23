@@ -16,129 +16,91 @@
             --font-family: 'Noto Sans KR', sans-serif;
         }
 
-        body {
-            margin: 0; padding: 0; display: flex;
-            background-color: #2c2c2c; color: #fff;
-            font-family: sans-serif; height: 100vh; overflow: hidden;
+        /* 브라우저 기본 여백 제거 및 전체 화면 고정 */
+        html, body {
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            overflow: hidden; /* 바디 스크롤 절대 금지 */
+            background-color: #111; color: #fff; font-family: sans-serif;
         }
 
-        /* --- 왼쪽 설정 패널 --- */
+        /* --- 완벽하게 고정된 왼쪽 패널 --- */
         #sidebar-wrap {
-            width: 420px; max-width: 100%; height: 100vh;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; /* 화면 왼쪽 위아래 꽉 채우기 */
+            width: 400px;
             display: flex; flex-direction: column;
-            background: #333; border-right: 2px solid #555; z-index: 100;
+            background: #333; border-right: 2px solid #555; z-index: 1000;
         }
 
-        #controls { flex: 1; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+        /* 스크롤은 오직 이 안에서만 발생 */
+        #controls {
+            flex: 1; overflow-y: auto; padding: 20px; box-sizing: border-box;
+        }
 
+        /* 무조건 하단에 박히는 저장 버튼 구역 */
         #save-section {
-            padding: 20px; background: #222; border-top: 1px solid #444; flex-shrink: 0;
+            position: relative;
+            flex-shrink: 0; padding: 20px; background: #222; border-top: 1px solid #444;
         }
 
         #controls h2 { margin-top: 0; font-size: 1.2rem; border-bottom: 1px solid #555; padding-bottom: 10px; }
-
         .control-group { margin-bottom: 15px; background: #444; padding: 15px; border-radius: 5px; }
-
         label { display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: bold; }
-
         input[type="text"], input[type="color"], select, textarea {
-            width: 100%; padding: 8px; box-sizing: border-box;
-            background: #222; color: #fff; border: 1px solid #555; border-radius: 4px;
+            width: 100%; padding: 8px; box-sizing: border-box; background: #222; color: #fff; border: 1px solid #555; border-radius: 4px;
         }
-
         input[type="range"] { width: 100%; margin: 5px 0 10px 0; }
-
         .radio-group, .checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; }
-
         .radio-group label, .checkbox-group label {
-            display: inline-block; background: #555; padding: 5px 10px;
-            border-radius: 4px; cursor: pointer; font-size: 0.8rem;
+            display: inline-block; background: #555; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;
         }
-
         .checkbox-group input[type="checkbox"], .radio-group input[type="radio"] { display: none; }
         .checkbox-group input[type="checkbox"]:checked + label,
-        .radio-group input[type="radio"]:checked + label {
-            background: #fff; color: #000; font-weight: bold;
-        }
+        .radio-group input[type="radio"]:checked + label { background: #fff; color: #000; font-weight: bold; }
 
         button.save-btn {
-            width: 100%; padding: 15px; background: #4CAF50; color: white;
-            border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; border-radius: 5px;
+            width: 100%; padding: 15px; background: #4CAF50; color: white; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; border-radius: 5px;
         }
         button.save-btn:hover { background: #45a049; }
 
-        /* --- 오른쪽 미리보기 화면 --- */
+        /* --- 오른쪽 미리보기 화면 (독립적 스크롤 영역) --- */
         #preview-container {
-            flex: 1; background-color: #111;
+            position: absolute;
+            top: 0; bottom: 0; right: 0; left: 400px; /* 사이드바를 제외한 나머지 화면 꽉 채우기 */
+            overflow: auto; /* 화면이 좁으면 상하좌우 스크롤 생성 */
             display: flex; align-items: center; justify-content: center;
-            overflow: auto; padding: 40px; box-sizing: border-box;
+            padding: 40px; box-sizing: border-box;
+            background-color: #2c2c2c;
         }
 
-        /* 데스크톱 기본 축소 (0.4배) */
+        /* 캔버스 축소 공간 (크기를 약간 더 줄여 한눈에 잘 보이게 함) */
         .canvas-scaler {
-            width: 864px; height: 692px; flex-shrink: 0; position: relative;
+            width: 756px; height: 605.5px; /* 2160x1730의 0.35배 */
+            flex-shrink: 0; position: relative; margin: auto;
         }
+
+        /* 실제 저장될 2160x1730 캔버스 */
         #canvas-area {
             width: 2160px; height: 1730px;
             background-color: var(--bg-color); background-size: cover; background-position: center;
             position: absolute; top: 0; left: 0;
-            transform: scale(0.4); transform-origin: top left;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            font-family: var(--font-family); color: var(--text-color);
-            overflow: hidden;
+            transform: scale(0.35); transform-origin: top left;
+            box-shadow: 0 0 25px rgba(0,0,0,0.8);
+            font-family: var(--font-family); color: var(--text-color); overflow: hidden;
         }
 
-        /* --- 모바일/태블릿 반응형 처리 --- */
-        @media (max-width: 900px) {
-            body {
-                flex-direction: column; /* 세로 배치 */
-                height: auto; overflow: auto; /* 전체 스크롤 허용 */
-            }
-            #preview-container {
-                width: 100%; height: 50vh; /* 화면의 절반 차지 */
-                order: 1; /* 미리보기를 맨 위로 올림 */
-                border-bottom: 3px solid #555; padding: 10px;
-            }
-            #sidebar-wrap {
-                width: 100%; height: auto; border-right: none;
-                order: 2; /* 설정창을 아래로 내림 */
-            }
-            #controls {
-                overflow: visible; padding-bottom: 100px; /* 저장버튼에 가려지지 않게 여백 추가 */
-            }
-            #save-section {
-                position: fixed; /* 폰 화면 맨 밑에 딱 붙임 */
-                bottom: 0; left: 0; width: 100%;
-                box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
-                z-index: 1000;
-            }
-            
-            /* 모바일 화면에 맞춰 캔버스를 더 작게 축소 (0.28배) */
-            .canvas-scaler {
-                width: 604.8px; height: 484.4px;
-            }
-            #canvas-area {
-                transform: scale(0.28);
-            }
-        }
-
-        /* 파일철 디자인 */
+        /* 파일철 배경 */
         .folder {
-            position: absolute; top: 4%; left: 4%;
-            width: 90%; height: 92%;
-            background-color: var(--folder-color);
-            transform: rotate(-1.5deg); 
-            border-radius: 10px 30px 10px 10px;
-            box-shadow: 10px 10px 40px rgba(0,0,0,0.6);
+            position: absolute; top: 4%; left: 4%; width: 90%; height: 92%;
+            background-color: var(--folder-color); transform: rotate(-1.5deg); 
+            border-radius: 10px 30px 10px 10px; box-shadow: 10px 10px 40px rgba(0,0,0,0.6);
         }
         .folder::before {
-            content: ''; position: absolute; top: -40px; right: 80px;
-            width: 450px; height: 50px; background-color: var(--folder-color);
-            border-radius: 20px 20px 0 0;
+            content: ''; position: absolute; top: -40px; right: 80px; width: 450px; height: 50px; 
+            background-color: var(--folder-color); border-radius: 20px 20px 0 0;
         }
         .paper-bg {
-            position: absolute; width: 86%; height: 90%;
-            background-color: #f0f0f0; box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+            position: absolute; width: 86%; height: 90%; background-color: #f0f0f0; box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
         }
         .paper-bg.p1 { transform: rotate(2deg); top: 5%; left: 5%; }
         .paper-bg.p2 { transform: rotate(-1deg); top: 4%; left: 6%; }
@@ -147,10 +109,8 @@
         .paper-main {
             position: absolute; top: 4%; left: 5%;
             width: 68%; height: 92%;
-            background-color: var(--paper-color);
-            transform: rotate(1.5deg); 
-            box-shadow: 0 0 20px rgba(0,0,0,0.3);
-            padding: 80px 60px; box-sizing: border-box;
+            background-color: var(--paper-color); transform: rotate(1.5deg); 
+            box-shadow: 0 0 20px rgba(0,0,0,0.3); padding: 80px 60px; box-sizing: border-box;
             display: flex; flex-direction: column;
         }
 
@@ -160,9 +120,7 @@
         .info-table td:first-child { font-weight: bold; width: 140px; }
         
         .profile-img-container {
-            width: 320px; height: 420px;
-            border: 6px solid var(--text-color);
-            position: relative; overflow: hidden; background: #ccc;
+            width: 320px; height: 420px; border: 6px solid var(--text-color); position: relative; overflow: hidden; background: #ccc;
         }
         .profile-img-container img { position: absolute; transform-origin: center; }
 
@@ -171,8 +129,7 @@
         .section-title { font-size: 32px; font-weight: bold; margin-bottom: 15px; margin-top: 10px; }
         .tag-display-area { display: flex; flex-wrap: wrap; gap: 15px; }
         .tag-badge {
-            font-size: 28px; font-weight: bold; padding: 8px 22px; 
-            border: 3px solid var(--text-color); border-radius: 50px;
+            font-size: 28px; font-weight: bold; padding: 8px 22px; border: 3px solid var(--text-color); border-radius: 50px;
         }
         .tag-badge.selected { background-color: var(--text-color); color: var(--paper-color); }
 
@@ -181,10 +138,9 @@
             padding: 20px; background-color: rgba(0,0,0,0.03); border-radius: 15px;
         }
 
-        /* --- 사이드 보고서 사진 프레임 --- */
+        /* --- 사이드 첨부사진 구역 (마스킹 테이프 프레임) --- */
         #side-photos-wrap {
-            position: absolute; right: 3%; top: 5%;
-            width: 25%; height: 90%;
+            position: absolute; right: 3%; top: 5%; width: 25%; height: 90%;
             display: flex; flex-direction: column; gap: 40px; z-index: 50;
         }
 
@@ -192,27 +148,29 @@
             position: relative; background-color: var(--paper-color); 
             padding: 15px 15px 40px 15px; box-sizing: border-box;
             border: 2px solid #ccc; box-shadow: 3px 3px 15px rgba(0,0,0,0.2);
-            transform: rotate(2deg); display: none;
+            display: none; /* 파일 첨부 시 보임 */
         }
 
+        /* 조금 더 디테일한 마스킹 테이프 효과 */
         .attached-photo-group::before {
-            content: ''; position: absolute; top: -15px; left: 50%;
-            transform: translateX(-50%) rotate(-10deg);
-            width: 120px; height: 35px;
-            background-color: rgba(255, 230, 100, 0.6); box-shadow: 1px 1px 2px rgba(0,0,0,0.1); z-index: 10;
+            content: ''; position: absolute; top: -12px; left: 50%;
+            transform: translateX(-50%) rotate(-4deg);
+            width: 100px; height: 28px;
+            background-color: rgba(245, 245, 220, 0.85); /* 옅은 상아색 반투명 */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2); z-index: 10;
+            border-left: 2px dotted rgba(0,0,0,0.1); /* 테이프 찢어진 단면 디테일 */
+            border-right: 2px dotted rgba(0,0,0,0.1);
         }
 
         .photo-img-viewport {
             width: 100%; height: 250px; background: #eee; overflow: hidden; position: relative; border: 1px solid #999;
         }
-
         .photo-img-area { width: 100%; height: 100%; background-size: cover; background-position: center; transform-origin: center; }
 
         .photo-caption {
             width: 100%; margin-top: 15px; text-align: center; font-size: 26px;
             color: var(--text-color); font-weight: bold; word-wrap: break-word;
         }
-
     </style>
 </head>
 <body>
@@ -324,25 +282,25 @@
                 
                 <label>사진 1</label>
                 <input type="file" id="attach1" accept="image/*">
-                <input type="range" id="scale1" min="0.1" max="3" step="0.1" value="1" title="사진 크기 조절">
+                <input type="range" id="scale1" min="0.1" max="3" step="0.1" value="1">
                 <input type="text" id="attachText1" placeholder="사진 1 아래 글씨 입력...">
                 <hr style="margin:10px 0; border-top:1px solid #555;">
                 
                 <label>사진 2</label>
                 <input type="file" id="attach2" accept="image/*">
-                <input type="range" id="scale2" min="0.1" max="3" step="0.1" value="1" title="사진 크기 조절">
+                <input type="range" id="scale2" min="0.1" max="3" step="0.1" value="1">
                 <input type="text" id="attachText2" placeholder="사진 2 아래 글씨 입력...">
                 <hr style="margin:10px 0; border-top:1px solid #555;">
                 
                 <label>사진 3</label>
                 <input type="file" id="attach3" accept="image/*">
-                <input type="range" id="scale3" min="0.1" max="3" step="0.1" value="1" title="사진 크기 조절">
+                <input type="range" id="scale3" min="0.1" max="3" step="0.1" value="1">
                 <input type="text" id="attachText3" placeholder="사진 3 아래 글씨 입력...">
                 <hr style="margin:10px 0; border-top:1px solid #555;">
                 
                 <label>사진 4</label>
                 <input type="file" id="attach4" accept="image/*">
-                <input type="range" id="scale4" min="0.1" max="3" step="0.1" value="1" title="사진 크기 조절">
+                <input type="range" id="scale4" min="0.1" max="3" step="0.1" value="1">
                 <input type="text" id="attachText4" placeholder="사진 4 아래 글씨 입력...">
             </div>
         </div>
@@ -385,51 +343,33 @@
                                 <img id="outProfileImg" src="" style="display:none; width:100%;">
                             </div>
                         </div>
-
                         <hr>
-
                         <div class="section-title">성향</div>
                         <div class="tag-display-area" id="outTraits"></div>
-
                         <div class="section-title" style="margin-top: 20px;">탐라</div>
                         <div class="tag-display-area" id="outTl"></div>
-
                         <hr>
-
                         <div class="free-text-area" id="outFreeText">자유롭게 입력하세요.</div>
                     </div>
                 </div>
 
                 <div id="side-photos-wrap">
-                    
                     <div class="attached-photo-group" id="box1" style="transform: rotate(2deg);">
-                        <div class="photo-img-viewport">
-                            <div class="photo-img-area" id="outAttach1"></div>
-                        </div>
+                        <div class="photo-img-viewport"><div class="photo-img-area" id="outAttach1"></div></div>
                         <div class="photo-caption" id="outAttachText1"></div>
                     </div>
-
                     <div class="attached-photo-group" id="box2" style="transform: rotate(-1deg);">
-                        <div class="photo-img-viewport">
-                            <div class="photo-img-area" id="outAttach2"></div>
-                        </div>
+                        <div class="photo-img-viewport"><div class="photo-img-area" id="outAttach2"></div></div>
                         <div class="photo-caption" id="outAttachText2"></div>
                     </div>
-
                     <div class="attached-photo-group" id="box3" style="transform: rotate(3deg);">
-                        <div class="photo-img-viewport">
-                            <div class="photo-img-area" id="outAttach3"></div>
-                        </div>
+                        <div class="photo-img-viewport"><div class="photo-img-area" id="outAttach3"></div></div>
                         <div class="photo-caption" id="outAttachText3"></div>
                     </div>
-
                     <div class="attached-photo-group" id="box4" style="transform: rotate(-2deg);">
-                        <div class="photo-img-viewport">
-                            <div class="photo-img-area" id="outAttach4"></div>
-                        </div>
+                        <div class="photo-img-viewport"><div class="photo-img-area" id="outAttach4"></div></div>
                         <div class="photo-caption" id="outAttachText4"></div>
                     </div>
-
                 </div>
 
             </div>
@@ -453,9 +393,7 @@
         });
 
         const bindText = (inputId, outId) => {
-            document.getElementById(inputId).addEventListener('input', (e) => {
-                document.getElementById(outId).innerText = e.target.value;
-            });
+            document.getElementById(inputId).addEventListener('input', (e) => { document.getElementById(outId).innerText = e.target.value; });
         };
         bindText('inputNickname', 'outNickname');
         bindText('inputId', 'outId');
@@ -473,7 +411,6 @@
             const container = document.getElementById(containerId);
             const checkboxes = container.querySelectorAll('input[type="checkbox"]');
             const outArea = document.getElementById(outId);
-            
             const render = () => {
                 outArea.innerHTML = '';
                 checkboxes.forEach(cb => {
@@ -509,7 +446,6 @@
             const fileInput = document.getElementById(`attach${index}`);
             const scaleInput = document.getElementById(`scale${index}`);
             const textInput = document.getElementById(`attachText${index}`);
-            
             const box = document.getElementById(`box${index}`);
             const imgArea = document.getElementById(`outAttach${index}`);
             const textArea = document.getElementById(`outAttachText${index}`);
@@ -521,32 +457,23 @@
                     imgArea.style.backgroundImage = `url(${url})`;
                 }
             });
-            scaleInput.addEventListener('input', (e) => {
-                imgArea.style.transform = `scale(${e.target.value})`;
-            });
-            textInput.addEventListener('input', (e) => {
-                textArea.innerText = e.target.value;
-            });
+            scaleInput.addEventListener('input', (e) => { imgArea.style.transform = `scale(${e.target.value})`; });
+            textInput.addEventListener('input', (e) => { textArea.innerText = e.target.value; });
         };
         [1, 2, 3, 4].forEach(handleAttach);
 
         function saveImage() {
             const canvasArea = document.getElementById('canvas-area');
-            // 캡처 전, css 스케일을 무시하고 1:1로 원복
             canvasArea.style.transform = 'scale(1)'; 
             
             html2canvas(canvasArea, {
-                scale: 1,
-                useCORS: true,
-                backgroundColor: null
+                scale: 1, useCORS: true, backgroundColor: null
             }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = '자기소개표.png';
                 link.href = canvas.toDataURL('image/png', 1.0);
                 link.click();
-                
-                // 캡처가 끝나면 css에서 정의된 스케일(모바일 0.28, 데스크톱 0.4)로 다시 돌아가게 끔 인라인 스타일 삭제
-                canvasArea.style.transform = ''; 
+                canvasArea.style.transform = 'scale(0.35)'; 
             });
         }
     </script>
