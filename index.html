@@ -21,7 +21,6 @@
             background-color: #1a1a1a; color: #fff;
             font-family: 'Noto Sans KR', sans-serif;
             display: flex; flex-direction: column;
-            /* 모바일 브라우저 주소창을 고려한 100% 높이 고정 */
             height: 100vh; height: 100dvh;
             overflow: hidden; 
         }
@@ -32,26 +31,23 @@
             border-bottom: 2px solid #444; flex-shrink: 0;
         }
 
-        /* 메인 레이아웃 (플렉스) */
         .container {
             display: flex; flex: 1; flex-direction: row-reverse;
-            min-height: 0; /* 자식 요소 스크롤을 위해 필수 */
+            min-height: 0; 
         }
 
-        /* --- 오른쪽: 찌그러지지 않는 절대 비율 미리보기 영역 --- */
+        /* --- 오른쪽: 미리보기 영역 --- */
         .preview-wrapper {
             flex: 1; position: relative;
             background: #151515; overflow: hidden;
         }
 
         #capture-area {
-            /* 2160x1730 고정 캔버스 */
             position: absolute;
             width: 2160px; height: 1730px;
-            /* 화면 중앙 정렬 */
             left: 50%; top: 50%;
-            margin-left: -1080px; /* width의 절반 */
-            margin-top: -865px; /* height의 절반 */
+            margin-left: -1080px; 
+            margin-top: -865px; 
             background-color: var(--bg-color);
             background-size: cover; background-position: center;
             display: flex; justify-content: center; align-items: center;
@@ -64,11 +60,9 @@
             width: 380px; background: #222;
             padding: 20px; box-sizing: border-box;
             border-right: 1px solid #444;
-            overflow-y: auto; /* 패널 내부 스크롤 */
-            flex-shrink: 0;
+            overflow-y: auto; flex-shrink: 0;
         }
 
-        /* 컨트롤 패널 내부 스타일 */
         .controls h3 { margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #555; padding-bottom: 10px; font-size: 16px;}
         .control-group { margin-bottom: 15px; }
         .control-group label { display: block; margin-bottom: 5px; font-size: 13px; color: #ccc; }
@@ -85,7 +79,7 @@
         .attach-row input[type="file"] { flex: 1; font-size: 12px; }
         .btn-del { background: #dc3545; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 12px; white-space: nowrap; }
 
-        /* --- 자기소개표 디자인 (비율 고정) --- */
+        /* --- 자기소개표 디자인 --- */
         .folder {
             position: absolute; width: 88%; height: 90%;
             background-color: var(--folder-color);
@@ -120,7 +114,6 @@
 
         .free-text-area { flex: 1; background: transparent; border: none; width: 100%; font-size: 28px; color: var(--text-color); font-family: inherit; resize: none; outline: none; line-height: 1.5; }
 
-        /* 첨부파일 위치 (마스킹 테이프) */
         .attachment { position: absolute; width: 300px; background: #fff; padding: 15px 15px 40px 15px; box-shadow: 2px 5px 15px rgba(0,0,0,0.2); display: none; text-align: center; z-index: 10; }
         .attachment img { width: 100%; height: auto; object-fit: cover; }
         .masking-tape { position: absolute; top: -15px; left: 50%; transform: translateX(-50%) rotate(-3deg); width: 120px; height: 35px; background-color: rgba(255, 250, 150, 0.7); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
@@ -134,9 +127,7 @@
         /* --- 모바일 반응형 --- */
         @media (max-width: 800px) {
             .container { flex-direction: column; }
-            /* 모바일에서 미리보기는 화면의 45% 고정, 넘치지 않게 */
             .preview-wrapper { flex: 0 0 45%; border-bottom: 2px solid #444; }
-            /* 컨트롤 영역은 나머지 영역 차지, 스크롤 보장 */
             .controls { flex: 1; width: 100%; border-right: none; }
         }
     </style>
@@ -242,24 +233,20 @@
     </div>
 
     <script>
-        // 1. 비율 깨짐 방지: 절대 좌표로 배치하고 크기만 스케일 조정
+        // 1. 화면 스케일 조정 로직
         function resizePreview() {
             const wrapper = document.getElementById('preview-wrapper');
             const captureArea = document.getElementById('capture-area');
-            
-            // 여백(Padding)을 약간 주어 크기를 맞춤
             const scaleX = (wrapper.clientWidth - 40) / 2160;
             const scaleY = (wrapper.clientHeight - 40) / 1730;
             const scale = Math.min(scaleX, scaleY);
-            
-            // 직접 Width/Height를 건드리지 않고, css의 transform: scale 만 조정
             captureArea.style.transform = `scale(${scale})`;
         }
         window.addEventListener('resize', resizePreview);
         resizePreview();
-        setTimeout(resizePreview, 100); // 폰트 로드 후 모바일 대응
+        setTimeout(resizePreview, 100); 
 
-        // 2. 디자인 연동
+        // 2. 설정 연동
         const root = document.documentElement;
         document.getElementById('set-bg-color').addEventListener('input', (e) => root.style.setProperty('--bg-color', e.target.value));
         document.getElementById('set-folder-color').addEventListener('input', (e) => root.style.setProperty('--folder-color', e.target.value));
@@ -285,11 +272,9 @@
         syncText('input-name', 'disp-name'); syncText('input-id', 'disp-id'); syncText('input-genre', 'disp-genre');
         document.getElementById('input-age').addEventListener('change', (e) => document.getElementById('disp-age').innerText = e.target.value);
         document.getElementById('input-farewell').addEventListener('change', (e) => document.getElementById('disp-farewell').innerText = e.target.value);
-
-        // 4. 태그 연동
         document.querySelectorAll('.tag').forEach(tag => tag.addEventListener('click', function() { this.classList.toggle('active'); }));
 
-        // 5. 프로필 이미지 로직
+        // 4. 프로필 및 첨부 이미지 연동
         const profileImgEl = document.getElementById('profile-img-el');
         let imgState = { scale: 1, x: 0, y: 0, rotate: 0 };
         const updateTransform = () => profileImgEl.style.transform = `translate(${imgState.x}px, ${imgState.y}px) scale(${imgState.scale}) rotate(${imgState.rotate}deg)`;
@@ -307,7 +292,6 @@
         document.getElementById('img-y').addEventListener('input', (e) => { imgState.y = e.target.value; updateTransform(); });
         document.getElementById('img-rotate').addEventListener('input', (e) => { imgState.rotate = e.target.value; updateTransform(); });
 
-        // 6. 개별 사이드 첨부파일
         for(let i=0; i<4; i++) {
             document.getElementById(`attach-file-${i}`).addEventListener('change', function(e) {
                 const file = e.target.files[0];
@@ -327,33 +311,64 @@
             document.getElementById(`attach-${index}`).style.display = 'none';
         }
 
-        // 7. 고화질 저장하기 로직
+        // 5. ⭐️ 버그 수정된 고화질 저장하기 로직 ⭐️
         document.getElementById('btn-save').addEventListener('click', () => {
             const captureArea = document.getElementById('capture-area');
-            const originalTransform = captureArea.style.transform;
-            const originalBoxShadow = captureArea.style.boxShadow;
+            const previewWrapper = document.getElementById('preview-wrapper');
             
-            // 캡처 전, 그림자를 끄고 스케일을 원래크기(1)로 변경
+            // 기존 스타일 안전하게 백업
+            const origTransform = captureArea.style.transform;
+            const origBoxShadow = captureArea.style.boxShadow;
+            const origPosition = captureArea.style.position;
+            const origLeft = captureArea.style.left;
+            const origTop = captureArea.style.top;
+            const origMarginLeft = captureArea.style.marginLeft;
+            const origMarginTop = captureArea.style.marginTop;
+            const origOverflow = previewWrapper.style.overflow;
+
+            // 캡처 화면 짤림 버그 방지를 위한 임시 좌표(0,0) 세팅
+            previewWrapper.style.overflow = 'visible';
             captureArea.style.transform = 'scale(1)';
             captureArea.style.boxShadow = 'none';
+            captureArea.style.position = 'absolute';
+            captureArea.style.left = '0';
+            captureArea.style.top = '0';
+            captureArea.style.marginLeft = '0';
+            captureArea.style.marginTop = '0';
             
-            html2canvas(captureArea, {
-                width: 2160, height: 1730, scale: 1, useCORS: true, backgroundColor: null 
-            }).then(canvas => {
-                // 원래 뷰로 원상복귀
-                captureArea.style.transform = originalTransform;
-                captureArea.style.boxShadow = originalBoxShadow;
-                
-                const link = document.createElement('a');
-                link.download = '자기소개표.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-            }).catch(err => {
-                console.error(err);
-                captureArea.style.transform = originalTransform;
-                captureArea.style.boxShadow = originalBoxShadow;
-                alert('저장 중 오류가 발생했습니다.');
-            });
+            // 브라우저 렌더링 대기 후 캡처 (0.15초)
+            setTimeout(() => {
+                html2canvas(captureArea, {
+                    width: 2160,
+                    height: 1730,
+                    scale: 1, 
+                    useCORS: true,
+                    backgroundColor: null,
+                    // 강제 스크롤 초기화 및 창크기 지정으로 잘림 완벽 방지
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: 2160,
+                    windowHeight: 1730
+                }).then(canvas => {
+                    // 저장 완료 후 다시 원래 화면으로 복구
+                    previewWrapper.style.overflow = origOverflow;
+                    captureArea.style.transform = origTransform;
+                    captureArea.style.boxShadow = origBoxShadow;
+                    captureArea.style.position = origPosition;
+                    captureArea.style.left = origLeft;
+                    captureArea.style.top = origTop;
+                    captureArea.style.marginLeft = origMarginLeft;
+                    captureArea.style.marginTop = origMarginTop;
+                    
+                    const link = document.createElement('a');
+                    link.download = '자기소개표.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                }).catch(err => {
+                    console.error(err);
+                    alert('저장 중 오류가 발생했습니다.');
+                });
+            }, 150);
         });
     </script>
 </body>
