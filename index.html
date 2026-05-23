@@ -24,7 +24,7 @@
 
         /* --- 왼쪽 설정 패널 --- */
         #sidebar-wrap {
-            width: 420px; min-width: 420px; height: 100vh;
+            width: 420px; max-width: 100%; height: 100vh;
             display: flex; flex-direction: column;
             background: #333; border-right: 2px solid #555; z-index: 100;
         }
@@ -71,14 +71,13 @@
         #preview-container {
             flex: 1; background-color: #111;
             display: flex; align-items: center; justify-content: center;
-            overflow: auto; padding: 40px;
+            overflow: auto; padding: 40px; box-sizing: border-box;
         }
 
+        /* 데스크톱 기본 축소 (0.4배) */
         .canvas-scaler {
             width: 864px; height: 692px; flex-shrink: 0; position: relative;
         }
-
-        /* 실제 저장될 2160x1730 캔버스 */
         #canvas-area {
             width: 2160px; height: 1730px;
             background-color: var(--bg-color); background-size: cover; background-position: center;
@@ -87,6 +86,40 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
             font-family: var(--font-family); color: var(--text-color);
             overflow: hidden;
+        }
+
+        /* --- 모바일/태블릿 반응형 처리 --- */
+        @media (max-width: 900px) {
+            body {
+                flex-direction: column; /* 세로 배치 */
+                height: auto; overflow: auto; /* 전체 스크롤 허용 */
+            }
+            #preview-container {
+                width: 100%; height: 50vh; /* 화면의 절반 차지 */
+                order: 1; /* 미리보기를 맨 위로 올림 */
+                border-bottom: 3px solid #555; padding: 10px;
+            }
+            #sidebar-wrap {
+                width: 100%; height: auto; border-right: none;
+                order: 2; /* 설정창을 아래로 내림 */
+            }
+            #controls {
+                overflow: visible; padding-bottom: 100px; /* 저장버튼에 가려지지 않게 여백 추가 */
+            }
+            #save-section {
+                position: fixed; /* 폰 화면 맨 밑에 딱 붙임 */
+                bottom: 0; left: 0; width: 100%;
+                box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+                z-index: 1000;
+            }
+            
+            /* 모바일 화면에 맞춰 캔버스를 더 작게 축소 (0.28배) */
+            .canvas-scaler {
+                width: 604.8px; height: 484.4px;
+            }
+            #canvas-area {
+                transform: scale(0.28);
+            }
         }
 
         /* 파일철 디자인 */
@@ -113,13 +146,11 @@
         /* 메인 보고서 종이 */
         .paper-main {
             position: absolute; top: 4%; left: 5%;
-            width: 68%; /* 사이드 사진 공간 확보 */
-            height: 92%;
+            width: 68%; height: 92%;
             background-color: var(--paper-color);
             transform: rotate(1.5deg); 
             box-shadow: 0 0 20px rgba(0,0,0,0.3);
-            padding: 80px 60px;
-            box-sizing: border-box;
+            padding: 80px 60px; box-sizing: border-box;
             display: flex; flex-direction: column;
         }
 
@@ -135,10 +166,7 @@
         }
         .profile-img-container img { position: absolute; transform-origin: center; }
 
-        hr {
-            width: 100%; border: none; border-top: 4px solid var(--text-color);
-            margin: 30px 0; 
-        }
+        hr { width: 100%; border: none; border-top: 4px solid var(--text-color); margin: 30px 0; }
 
         .section-title { font-size: 32px; font-weight: bold; margin-bottom: 15px; margin-top: 10px; }
         .tag-display-area { display: flex; flex-wrap: wrap; gap: 15px; }
@@ -146,7 +174,6 @@
             font-size: 28px; font-weight: bold; padding: 8px 22px; 
             border: 3px solid var(--text-color); border-radius: 50px;
         }
-        /* 선택된 배지 글자색 반전 */
         .tag-badge.selected { background-color: var(--text-color); color: var(--paper-color); }
 
         .free-text-area {
@@ -154,70 +181,36 @@
             padding: 20px; background-color: rgba(0,0,0,0.03); border-radius: 15px;
         }
 
-        /* --- 사이드 보고서 사진 프레임 (마스킹 테이프 고정) --- */
+        /* --- 사이드 보고서 사진 프레임 --- */
         #side-photos-wrap {
-            position: absolute;
-            right: 3%; /* 우측 배치 */
-            top: 5%;
-            width: 25%; /* 너비 */
-            height: 90%;
-            display: flex;
-            flex-direction: column;
-            gap: 40px; /* 사진 사이 간격 */
-            z-index: 50; /* 종이 위로 겹침 */
+            position: absolute; right: 3%; top: 5%;
+            width: 25%; height: 90%;
+            display: flex; flex-direction: column; gap: 40px; z-index: 50;
         }
 
         .attached-photo-group {
-            position: relative;
-            background-color: var(--paper-color); /* 종이 색상과 동일 */
-            padding: 15px 15px 40px 15px; /* 프레임 여백 (하단은 글씨 공간) */
-            box-sizing: border-box;
-            border: 2px solid #ccc; /* 연한 액자 프레임 */
-            box-shadow: 3px 3px 15px rgba(0,0,0,0.2);
-            transform: rotate(2deg); /* 살짝 비스듬하게 기본값 */
-            display: none; /* 첨부 전엔 숨김 */
+            position: relative; background-color: var(--paper-color); 
+            padding: 15px 15px 40px 15px; box-sizing: border-box;
+            border: 2px solid #ccc; box-shadow: 3px 3px 15px rgba(0,0,0,0.2);
+            transform: rotate(2deg); display: none;
         }
 
-        /* 마스킹 테이프 효과 */
         .attached-photo-group::before {
-            content: '';
-            position: absolute;
-            top: -15px;
-            left: 50%;
+            content: ''; position: absolute; top: -15px; left: 50%;
             transform: translateX(-50%) rotate(-10deg);
-            width: 120px;
-            height: 35px;
-            background-color: rgba(255, 230, 100, 0.6); /* 투명 yellowish washi tape */
-            box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-            z-index: 10;
+            width: 120px; height: 35px;
+            background-color: rgba(255, 230, 100, 0.6); box-shadow: 1px 1px 2px rgba(0,0,0,0.1); z-index: 10;
         }
 
         .photo-img-viewport {
-            width: 100%;
-            height: 250px; /* 고정 크기 뷰포트 */
-            background: #eee;
-            overflow: hidden;
-            position: relative;
-            border: 1px solid #999;
+            width: 100%; height: 250px; background: #eee; overflow: hidden; position: relative; border: 1px solid #999;
         }
 
-        .photo-img-area {
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            transform-origin: center;
-        }
+        .photo-img-area { width: 100%; height: 100%; background-size: cover; background-position: center; transform-origin: center; }
 
-        /* 사진 아래 글씨 영역 */
         .photo-caption {
-            width: 100%;
-            margin-top: 15px;
-            text-align: center;
-            font-size: 26px;
-            color: var(--text-color);
-            font-weight: bold;
-            word-wrap: break-word;
+            width: 100%; margin-top: 15px; text-align: center; font-size: 26px;
+            color: var(--text-color); font-weight: bold; word-wrap: break-word;
         }
 
     </style>
@@ -373,7 +366,7 @@
                                 <tr>
                                     <td>NAME</td>
                                     <td><span id="outNickname">닉네임</span> <span id="outAge" style="font-size:24px; border:3px solid; padding:2px 10px; border-radius:12px; margin-left:10px;">성인</span></td>
-                                }
+                                </tr>
                                 <tr>
                                     <td>@</td>
                                     <td id="outId">@username</td>
@@ -446,14 +439,12 @@
     <script>
         const root = document.documentElement;
 
-        // 색상 및 폰트 변경
         document.getElementById('bgColor').addEventListener('input', (e) => { root.style.setProperty('--bg-color', e.target.value); });
         document.getElementById('folderColor').addEventListener('input', (e) => { root.style.setProperty('--folder-color', e.target.value); });
         document.getElementById('paperColor').addEventListener('input', (e) => { root.style.setProperty('--paper-color', e.target.value); });
         document.getElementById('textColor').addEventListener('input', (e) => { root.style.setProperty('--text-color', e.target.value); });
         document.getElementById('fontSelect').addEventListener('change', (e) => { root.style.setProperty('--font-family', e.target.value); });
 
-        // 배경 이미지 처리
         document.getElementById('bgImage').addEventListener('change', function(e) {
             if(e.target.files[0]) {
                 const url = URL.createObjectURL(e.target.files[0]);
@@ -461,7 +452,6 @@
             }
         });
 
-        // 텍스트 필드 바인딩
         const bindText = (inputId, outId) => {
             document.getElementById(inputId).addEventListener('input', (e) => {
                 document.getElementById(outId).innerText = e.target.value;
@@ -472,7 +462,6 @@
         bindText('inputGenre', 'outGenre');
         bindText('inputFreeText', 'outFreeText');
 
-        // 라디오 버튼 바인딩
         document.getElementsByName('age').forEach(radio => {
             radio.addEventListener('change', (e) => { document.getElementById('outAge').innerText = e.target.value; });
         });
@@ -480,7 +469,6 @@
             radio.addEventListener('change', (e) => { document.getElementById('outParting').innerText = e.target.value; });
         });
 
-        // 체크박스 (배지) 바인딩 및 글자색 반전 처리
         const updateTags = (containerId, outId) => {
             const container = document.getElementById(containerId);
             const checkboxes = container.querySelectorAll('input[type="checkbox"]');
@@ -490,7 +478,6 @@
                 outArea.innerHTML = '';
                 checkboxes.forEach(cb => {
                     const div = document.createElement('div');
-                    // 선택된 배지에 'selected' 클래스를 부여하여 CSS에서 글자색/배경색 반전
                     div.className = 'tag-badge ' + (cb.checked ? 'selected' : '');
                     div.innerText = cb.value;
                     outArea.appendChild(div);
@@ -502,7 +489,6 @@
         updateTags('traitChecks', 'outTraits');
         updateTags('tlChecks', 'outTl');
 
-        // 메인 이미지 트랜스폼
         const profileImg = document.getElementById('outProfileImg');
         let imgState = { scale: 1, x: 0, y: 0, rotate: 0 };
         const updateImgTransform = () => {
@@ -519,7 +505,6 @@
         document.getElementById('imgY').addEventListener('input', (e) => { imgState.y = e.target.value; updateImgTransform(); });
         document.getElementById('imgRotate').addEventListener('input', (e) => { imgState.rotate = e.target.value; updateImgTransform(); });
 
-        // 사이드 첨부사진 처리 (마스킹 테이프 프레임)
         const handleAttach = (index) => {
             const fileInput = document.getElementById(`attach${index}`);
             const scaleInput = document.getElementById(`scale${index}`);
@@ -529,29 +514,25 @@
             const imgArea = document.getElementById(`outAttach${index}`);
             const textArea = document.getElementById(`outAttachText${index}`);
 
-            // 사진 첨부
             fileInput.addEventListener('change', (e) => {
                 if(e.target.files[0]) {
                     const url = URL.createObjectURL(e.target.files[0]);
-                    box.style.display = 'block'; // 사진이 있으면 프레임 보이게
+                    box.style.display = 'block'; 
                     imgArea.style.backgroundImage = `url(${url})`;
                 }
             });
-            // 사진 크기 조절
             scaleInput.addEventListener('input', (e) => {
                 imgArea.style.transform = `scale(${e.target.value})`;
             });
-            // 사진 아래 글씨 입력
             textInput.addEventListener('input', (e) => {
                 textArea.innerText = e.target.value;
             });
         };
         [1, 2, 3, 4].forEach(handleAttach);
 
-        // 이미지 고화질 저장 기능
         function saveImage() {
             const canvasArea = document.getElementById('canvas-area');
-            // 캡처 전 원본 크기(scale 1)로 변경
+            // 캡처 전, css 스케일을 무시하고 1:1로 원복
             canvasArea.style.transform = 'scale(1)'; 
             
             html2canvas(canvasArea, {
@@ -564,8 +545,8 @@
                 link.href = canvas.toDataURL('image/png', 1.0);
                 link.click();
                 
-                // 캡처 후 화면 맞춤 크기(scale 0.4)로 복원
-                canvasArea.style.transform = 'scale(0.4)'; 
+                // 캡처가 끝나면 css에서 정의된 스케일(모바일 0.28, 데스크톱 0.4)로 다시 돌아가게 끔 인라인 스타일 삭제
+                canvasArea.style.transform = ''; 
             });
         }
     </script>
