@@ -64,7 +64,6 @@
             padding: 40px; box-sizing: border-box; background-color: #2c2c2c;
         }
 
-        /* 캡처 붕괴 방지를 위한 구조 분리 */
         #scale-box {
             width: 756px; height: 605.5px; /* 2160x1730의 0.35배 */
             position: relative; flex-shrink: 0; margin: auto;
@@ -76,9 +75,9 @@
             position: absolute; top: 0; left: 0;
         }
 
-        /* 실제 캡처 대상 (여기에 transform을 넣지 않음으로써 캡처 오류 원천 차단) */
+        /* 실제 캡처 영역 */
         #canvas-area {
-            width: 100%; height: 100%; position: relative;
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0;
             background-color: var(--bg-color); background-size: cover; background-position: center;
             box-shadow: 0 0 25px rgba(0,0,0,0.8);
             font-family: var(--font-family); color: var(--text-color); overflow: hidden;
@@ -100,13 +99,13 @@
         .paper-bg.p1 { transform: rotate(2deg); top: 5%; left: 5%; }
         .paper-bg.p2 { transform: rotate(-1deg); top: 4%; left: 6%; }
 
-        /* 메인 보고서 종이 (Flex 삭제, Block으로 고정) */
+        /* 메인 보고서 종이 */
         .paper-main {
             position: absolute; top: 4%; left: 5%;
             width: 68%; height: 92%;
             background-color: var(--paper-color); transform: rotate(1.5deg); 
             box-shadow: 0 0 20px rgba(0,0,0,0.3); padding: 80px 60px; box-sizing: border-box;
-            display: block; /* 절대 분리되지 않게 block으로 고정 */
+            display: block; 
         }
 
         .header-section { display: flex; justify-content: space-between; align-items: flex-start; height: 430px; }
@@ -132,16 +131,14 @@
         }
         .tag-badge.selected { background-color: var(--text-color); color: var(--paper-color); }
 
-        /* 자유작성란 (절대 떨어져나가지 않도록 높이 픽셀 고정) */
         .free-text-area {
-            display: block;
-            width: 100%; height: 500px; /* 고정 높이 */
+            display: block; width: 100%; height: 500px; 
             font-size: 35px; white-space: pre-wrap; line-height: 1.6;
             padding: 20px; box-sizing: border-box;
             background-color: #f5f5f5; border-radius: 15px; border: 2px solid #ddd;
         }
 
-        /* --- 사이드 첨부사진 구역 (Flex 삭제, Block 및 Margin으로 고정) --- */
+        /* --- 사이드 첨부사진 구역 --- */
         #side-photos-wrap {
             position: absolute; right: 3%; top: 5%; width: 25%; height: 90%;
             display: block; z-index: 50;
@@ -151,11 +148,9 @@
             position: relative; background-color: var(--paper-color); 
             padding: 15px 15px 40px 15px; box-sizing: border-box;
             border: 2px solid #ccc; box-shadow: 3px 3px 15px rgba(0,0,0,0.2);
-            margin-bottom: 40px; /* 간격 고정 */
-            display: none; 
+            margin-bottom: 40px; display: none; 
         }
 
-        /* 마스킹 테이프 단색 고정 */
         .attached-photo-group::before {
             content: ''; position: absolute; top: -12px; left: 50%;
             transform: translateX(-50%) rotate(-4deg);
@@ -472,48 +467,48 @@
         };
         [1, 2, 3, 4].forEach(handleAttach);
 
-        // 캡처 깨짐 완전 차단 로직
+        // 캡처 깨짐 원천 차단 로직 (절대 좌표계 독립 캡처)
         function saveImage() {
             const canvasArea = document.getElementById('canvas-area');
-            const zoomWrapper = document.getElementById('zoom-wrapper');
-            const scaleBox = document.getElementById('scale-box');
-            const previewContainer = document.getElementById('preview-container');
+            const oldTransform = canvasArea.style.transform;
+            const oldPosition = canvasArea.style.position;
+            const oldTop = canvasArea.style.top;
+            const oldLeft = canvasArea.style.left;
+            const oldZIndex = canvasArea.style.zIndex;
 
-            // 캡처 전에 스크롤 위치를 맨 위로 초기화 (스크롤에 의한 잘림 방지)
-            const oldScrollTop = previewContainer.scrollTop;
-            const oldScrollLeft = previewContainer.scrollLeft;
-            previewContainer.scrollTop = 0;
-            previewContainer.scrollLeft = 0;
-            
-            // 비율을 원래 크기(1:1)로 확대한 뒤
-            zoomWrapper.style.transform = 'scale(1)';
-            scaleBox.style.width = '2160px';
-            scaleBox.style.height = '1730px';
+            // 캡처 시 브라우저 스크롤, 크기 조절 간섭을 0%로 만들기 위해 화면 밖 최상단으로 분리
+            canvasArea.style.transform = 'none'; // 스케일 완전 제거
+            canvasArea.style.position = 'fixed'; 
+            canvasArea.style.top = '0';
+            canvasArea.style.left = '0';
+            canvasArea.style.zIndex = '9999';
 
-            // 브라우저가 화면을 안정화할 수 있도록 여유 시간(300ms)을 줌
+            // 브라우저가 이동된 요소를 완벽하게 새로 그릴 수 있도록 0.5초 대기
             setTimeout(() => {
                 html2canvas(canvasArea, {
                     scale: 1, 
                     useCORS: true, 
-                    backgroundColor: null,
-                    scrollX: 0, 
-                    scrollY: 0,
+                    backgroundColor: null, 
                     width: 2160,
-                    height: 1730
+                    height: 1730,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: 2160,
+                    windowHeight: 1730
                 }).then(canvas => {
                     const link = document.createElement('a');
                     link.download = '자기소개표.png';
                     link.href = canvas.toDataURL('image/png', 1.0);
                     link.click();
                     
-                    // 캡처 완료 후 화면 원래대로 복구
-                    zoomWrapper.style.transform = 'scale(0.35)';
-                    scaleBox.style.width = '756px';
-                    scaleBox.style.height = '605.5px';
-                    previewContainer.scrollTop = oldScrollTop;
-                    previewContainer.scrollLeft = oldScrollLeft;
+                    // 캡처 완료 후 원상 복구
+                    canvasArea.style.transform = oldTransform;
+                    canvasArea.style.position = oldPosition;
+                    canvasArea.style.top = oldTop;
+                    canvasArea.style.left = oldLeft;
+                    canvasArea.style.zIndex = oldZIndex;
                 });
-            }, 300); 
+            }, 500); 
         }
     </script>
 </body>
