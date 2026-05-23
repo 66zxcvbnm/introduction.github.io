@@ -2,66 +2,60 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>자기소개표 메이커</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        .folder-bg { transform: rotate(-2deg); }
-        .paper-shadow { box-shadow: 10px 10px 20px rgba(0,0,0,0.3); }
-        .tag-style { padding: 2px 8px; border-radius: 4px; display: inline-block; }
+        :root { --main-text: #000; --bg-color: #ffffff; }
+        body { background: #1a1a1a; color: white; padding: 20px; }
+        #canvas { width: 2160px; height: 1730px; background: #333; position: relative; overflow: hidden; transform-origin: top left; }
+        
+        /* 파일철 디자인 */
+        .folder { width: 1900px; height: 1500px; background: #8b0000; margin: 100px auto; transform: rotate(-2deg); position: relative; box-shadow: 20px 20px 50px rgba(0,0,0,0.5); }
+        .paper-stack { position: absolute; top: 50px; left: 100px; width: 1700px; height: 1400px; background: white; transform: rotate(2deg); padding: 60px; color: black; }
+        
+        /* 선택지 스타일 */
+        .badge { padding: 4px 10px; border-radius: 4px; display: inline-block; margin: 5px; font-weight: bold; }
+        .divider { height: 2px; background: #ccc; margin: 20px 0; }
     </style>
 </head>
-<body class="bg-gray-900 text-white p-4">
+<body>
 
-    <h1 class="text-2xl font-bold mb-6 text-center">자기소개표 메이커</h1>
+<div class="flex gap-10">
+    <div class="w-1/3 bg-gray-800 p-6 rounded-xl">
+        <h2 class="text-2xl font-bold mb-4">자기소개표 설정</h2>
+        <input type="text" id="nickname" placeholder="닉네임" class="w-full p-2 mb-2 text-black">
+        <select id="ageType" class="w-full p-2 mb-2 text-black">
+            <option>성인</option><option>미성년자</option><option>비밀</option>
+        </select>
+        <button onclick="generate()" class="w-full bg-green-600 p-4 rounded mt-4 font-bold">저장하기</button>
+    </div>
 
-    <div class="max-w-4xl mx-auto flex flex-col lg:flex-row gap-8">
-        
-        <div class="flex-1 bg-gray-800 p-6 rounded-lg">
-            <h2 class="text-xl mb-4 border-b border-gray-600 pb-2">보고서 설정</h2>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block mb-2">배경 색상</label>
-                    <input type="color" id="bgColor" class="w-full h-10 cursor-pointer">
+    <div class="w-2/3 scale-[0.3] origin-top-left">
+        <div id="canvas">
+            <div class="folder">
+                <div class="paper-stack">
+                    <h1 id="disp-nick" class="text-6xl font-bold">닉네임</h1>
+                    <div class="divider"></div>
+                    <div id="disp-tags" class="text-3xl"></div>
                 </div>
-                
-                <div>
-                    <label class="block mb-2">닉네임 / 성향 / 탐라</label>
-                    <input type="text" id="nickname" placeholder="닉네임 입력" class="w-full p-2 bg-gray-700 text-white rounded">
-                    </div>
-
-                <button id="saveBtn" class="w-full bg-green-600 hover:bg-green-700 py-3 rounded font-bold">저장하기</button>
-            </div>
-        </div>
-
-        <div id="captureArea" class="flex-1 relative p-10 bg-transparent flex items-center justify-center">
-            <div id="folder" class="folder-bg w-full aspect-[2160/1730] absolute bg-red-800 rounded-lg"></div>
-            
-            <div id="paper" class="paper-shadow relative w-[90%] bg-white text-black p-8 z-10">
-                <h2 class="text-2xl font-bold border-b-2 border-black pb-2 mb-4">임무 보고서</h2>
-                <div id="contentArea" class="space-y-2">
-                    </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        // 저장 기능 (2160 * 1730 고화질)
-        document.getElementById('saveBtn').addEventListener('click', () => {
-            const element = document.getElementById('captureArea');
-            html2canvas(element, {
-                width: 2160,
-                height: 1730,
-                scale: 1
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = 'my-profile.png';
-                link.href = canvas.toDataURL();
-                link.click();
-            });
+<script>
+    function generate() {
+        const nick = document.getElementById('nickname').value;
+        document.getElementById('disp-nick').innerText = nick;
+        
+        html2canvas(document.getElementById('canvas'), {width: 2160, height: 1730}).then(canvas => {
+            const link = document.createElement('a');
+            link.download = '자기소개표.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
         });
-    </script>
+    }
+</script>
 </body>
 </html>
