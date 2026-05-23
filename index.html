@@ -27,15 +27,22 @@
             overflow: hidden;
         }
 
-        /* 왼쪽 컨트롤 패널 */
-        #controls {
+        /* 왼쪽 컨트롤 패널 (잘림 방지 구조 개선) */
+        #controls-wrapper {
             width: 400px;
             min-width: 400px;
+            height: 100vh;
             background: #333;
-            padding: 20px;
-            overflow-y: auto;
             border-right: 2px solid #555;
-            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #controls {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto; /* 내부 스크롤 보장 */
+            padding-bottom: 80px; /* 하단 여유 공간 추가 */
         }
 
         #controls h2 {
@@ -70,12 +77,13 @@
 
         input[type="range"] {
             width: 100%;
+            margin: 5px 0 10px 0;
         }
 
         .radio-group, .checkbox-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
 
         .radio-group label, .checkbox-group label {
@@ -98,6 +106,13 @@
             font-weight: bold;
         }
 
+        /* 저장 버튼 (하단 고정 느낌으로 잘림 방지) */
+        .save-btn-container {
+            padding: 15px 20px;
+            background: #333;
+            border-top: 1px solid #555;
+        }
+
         button.save-btn {
             width: 100%;
             padding: 15px;
@@ -108,16 +123,18 @@
             font-weight: bold;
             cursor: pointer;
             border-radius: 5px;
-            margin-top: 20px;
         }
         button.save-btn:hover { background: #45a049; }
 
-        /* 오른쪽 프리뷰 (크기 조절 래퍼) */
+        /* 오른쪽 프리뷰 */
         #preview-wrapper {
             flex: 1;
-            overflow: auto; /* 스크롤 허용 */
+            overflow: auto; 
             padding: 20px;
             background-color: #2c2c2c;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
         }
 
         /* 찌그러짐 방지를 위한 캔버스 컨테이너 */
@@ -125,6 +142,7 @@
             width: 864px; /* 2160 * 0.4 */
             height: 692px; /* 1730 * 0.4 */
             position: relative;
+            margin: 20px;
         }
 
         /* 실제 캡처될 캔버스 (2160x1730 고정) */
@@ -133,14 +151,13 @@
             height: 1730px;
             min-width: 2160px;
             min-height: 1730px;
-            flex-shrink: 0;
             background-color: var(--bg-color);
             background-size: cover;
             background-position: center;
             position: absolute;
             top: 0;
             left: 0;
-            transform: scale(0.4); /* 화면에 맞게 축소 표시 */
+            transform: scale(0.4); 
             transform-origin: top left;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
             overflow: hidden;
@@ -148,69 +165,88 @@
             color: var(--text-color);
         }
 
-        /* 파일철 디자인 */
+        /* 파일철 및 종이 기본 세팅 */
         .folder {
             position: absolute;
-            top: 5%;
-            left: 5%;
-            width: 90%;
-            height: 90%;
+            top: 4%;
+            left: 4%;
+            width: 92%;
+            height: 92%;
             background-color: var(--folder-color);
-            transform: rotate(-2deg); /* 삐뚤어짐 */
+            transform: rotate(-1.5deg); 
             border-radius: 10px 30px 10px 10px;
             box-shadow: 10px 10px 30px rgba(0,0,0,0.5);
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        
-        /* 파일철 탭 */
         .folder::before {
             content: '';
             position: absolute;
             top: -40px;
-            right: 0;
-            width: 300px;
+            right: 50px;
+            width: 400px;
             height: 50px;
             background-color: var(--folder-color);
             border-radius: 20px 20px 0 0;
         }
-
-        /* 뒤에 겹친 종이들 */
         .paper-bg {
             position: absolute;
-            width: 82%;
-            height: 88%;
+            width: 86%;
+            height: 90%;
             background-color: #f0f0f0;
             box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
         }
-        .paper-bg.p1 { transform: rotate(3deg); }
+        .paper-bg.p1 { transform: rotate(2deg); }
         .paper-bg.p2 { transform: rotate(-1deg); }
 
-        /* 메인 보고서 종이 */
+        /* 메인 보고서 종이 - 레이아웃 변경 (좌우 분할) */
         .paper-main {
             position: absolute;
-            width: 80%;
-            height: 90%;
+            width: 85%;
+            height: 92%;
             background-color: var(--paper-color);
-            transform: rotate(2deg); /* 폴더가 -2도이므로 +2도를 주어 시각적으로 바르게 정렬 */
+            transform: rotate(1.5deg); 
             box-shadow: 0 0 15px rgba(0,0,0,0.3);
-            padding: 80px;
+            padding: 60px;
             box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
+            display: flex; /* 좌/우 단 나누기 */
+            flex-direction: row;
+            gap: 50px;
         }
 
-        /* 내부 레이아웃 */
-        .header-section { display: flex; justify-content: space-between; }
-        .info-table { width: 60%; font-size: 35px; border-collapse: collapse; }
-        .info-table td { padding: 15px 0; border-bottom: 2px solid var(--text-color); }
-        .info-table td:first-child { font-weight: bold; width: 150px; }
+        /* ---------------- 좌측 영역 (정보, 성향, 자유작성) ---------------- */
+        .column-left {
+            flex: 7; /* 좌측 비율 7 */
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        /* 상단 프로필 구역 압축 */
+        .header-section { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start;
+        }
+        .info-table { 
+            width: 65%; 
+            font-size: 26px; /* 폰트 축소 */
+            border-collapse: collapse; 
+        }
+        .info-table td { 
+            padding: 8px 0; /* 패딩 축소 */
+            border-bottom: 2px solid var(--text-color); 
+        }
+        .info-table td:first-child { 
+            font-weight: bold; 
+            width: 120px; 
+        }
         
         .profile-img-container {
-            width: 400px;
-            height: 500px;
-            border: 5px solid var(--text-color);
+            width: 250px; /* 프로필 사진 크기 축소 */
+            height: 320px;
+            border: 4px solid var(--text-color);
             position: relative;
             overflow: hidden;
             background: #ccc;
@@ -223,39 +259,59 @@
         hr {
             width: 100%;
             border: none;
-            border-top: 4px solid var(--text-color);
-            margin: 40px 0;
+            border-top: 3px solid var(--text-color);
+            margin: 20px 0; /* 여백 축소 */
         }
 
-        /* 성향/탐라 선택된 항목 태그 스타일 */
-        .tag-display-area { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 10px;}
-        .tag-badge {
-            font-size: 35px;
+        /* 성향/탐라 구역 압축 */
+        .section-title {
+            font-size: 26px;
             font-weight: bold;
-            padding: 10px 25px;
-            border: 3px solid var(--text-color);
-            border-radius: 50px;
+            margin-bottom: 8px;
+            margin-top: 10px;
+        }
+        .tag-display-area { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 12px; 
+        }
+        .tag-badge {
+            font-size: 22px; /* 폰트 축소 */
+            font-weight: bold;
+            padding: 6px 18px; /* 패딩 축소 */
+            border: 2px solid var(--text-color);
+            border-radius: 40px;
         }
         .tag-badge.selected {
             background-color: var(--text-color);
             color: var(--paper-color);
         }
 
+        /* 자유작성란 (비율 대폭 확대) */
         .free-text-area {
-            flex: 1;
-            font-size: 35px;
+            flex: 1; /* 남은 공간을 모두 차지함 */
+            font-size: 32px; /* 폰트 키움 */
             white-space: pre-wrap;
-            line-height: 1.6;
+            line-height: 1.5;
+            padding: 10px;
+            background-color: rgba(0,0,0,0.02); /* 시각적 구분을 위한 아주 옅은 배경 */
+            border-radius: 10px;
+            overflow: hidden;
         }
 
-        /* 하단 첨부파일 영역 */
-        .attachment-section {
+
+        /* ---------------- 우측 영역 (첨부파일 사이드 배치) ---------------- */
+        .column-right {
+            flex: 3; /* 우측 비율 3 */
             display: flex;
+            flex-direction: column;
+            gap: 30px; /* 사진 사이 간격 */
             justify-content: space-between;
-            height: 350px;
-            margin-top: 30px;
-            gap: 20px;
+            height: 100%;
+            border-left: 2px dashed var(--text-color); /* 좌우 구분선 */
+            padding-left: 40px;
         }
+
         .attach-box {
             flex: 1;
             position: relative;
@@ -263,31 +319,45 @@
             display: flex;
             flex-direction: column;
             border: 2px solid var(--text-color);
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.1);
         }
+        
         .attach-box .tape {
             position: absolute;
             top: -15px;
             left: 50%;
             transform: translateX(-50%) rotate(-3deg);
-            width: 120px;
-            height: 40px;
+            width: 100px;
+            height: 35px;
             background: rgba(255, 235, 138, 0.7);
             z-index: 10;
         }
-        .attach-box .img-area {
+
+        /* 이미지 크기 조절을 위한 내부 구조 변경 */
+        .attach-box .img-viewport {
             flex: 1;
             overflow: hidden;
+            position: relative;
+            background: #fff;
+        }
+
+        .attach-box .img-area {
+            width: 100%;
+            height: 100%;
             background-size: cover;
             background-position: center;
+            transform-origin: center;
+            /* transform: scale(1)은 JS에서 조절 */
         }
+        
         .attach-box .text-area {
-            height: 60px;
+            height: 45px;
             background: var(--paper-color);
             border-top: 2px dashed var(--text-color);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 25px;
+            font-size: 20px;
             font-weight: bold;
         }
 
@@ -295,310 +365,136 @@
 </head>
 <body>
 
-    <div id="controls">
-        <h2>자기소개표 설정</h2>
-        
-        <div class="control-group">
-            <label>배경 색상</label>
-            <input type="color" id="bgColor" value="#1a1a1a">
-            <label style="margin-top:10px;">배경 이미지 첨부</label>
-            <input type="file" id="bgImage" accept="image/*">
-        </div>
-
-        <div class="control-group">
-            <label>파일철 색상</label>
-            <input type="color" id="folderColor" value="#8b0000">
-            <label style="margin-top:10px;">종이 색상</label>
-            <input type="color" id="paperColor" value="#ffffff">
-            <label style="margin-top:10px;">글자 색상</label>
-            <input type="color" id="textColor" value="#000000">
-        </div>
-
-        <div class="control-group">
-            <label>폰트 선택</label>
-            <select id="fontSelect">
-                <option value="'Noto Sans KR'">Noto Sans KR</option>
-                <option value="'Nanum Myeongjo'">Nanum Myeongjo</option>
-                <option value="'Gowun Dodum'">Gowun Dodum</option>
-                <option value="'Jua'">Jua</option>
-            </select>
-        </div>
-
-        <div class="control-group">
-            <label>닉네임</label>
-            <input type="text" id="inputNickname" value="닉네임">
-            <label style="margin-top:10px;">나이</label>
-            <div class="radio-group">
-                <input type="radio" name="age" id="age1" value="성인" checked><label for="age1">성인</label>
-                <input type="radio" name="age" id="age2" value="미성년자"><label for="age2">미성년자</label>
-                <input type="radio" name="age" id="age3" value="비밀"><label for="age3">비밀</label>
-            </div>
+    <div id="controls-wrapper">
+        <div id="controls">
+            <h2>자기소개표 설정</h2>
             
-            <label style="margin-top:10px;">@ (아이디)</label>
-            <input type="text" id="inputId" value="@username">
-
-            <label style="margin-top:10px;">이별 방식</label>
-            <div class="radio-group">
-                <input type="radio" name="parting" id="part1" value="블블" checked><label for="part1">블블</label>
-                <input type="radio" name="parting" id="part2" value="블언블"><label for="part2">블언블</label>
+            <div class="control-group">
+                <label>배경 색상</label>
+                <input type="color" id="bgColor" value="#1a1a1a">
+                <label style="margin-top:10px;">배경 이미지 첨부</label>
+                <input type="file" id="bgImage" accept="image/*">
             </div>
 
-            <label style="margin-top:10px;">장르</label>
-            <input type="text" id="inputGenre" value="장르명">
-        </div>
+            <div class="control-group">
+                <label>파일철 색상</label>
+                <input type="color" id="folderColor" value="#8b0000">
+                <label style="margin-top:10px;">종이 색상</label>
+                <input type="color" id="paperColor" value="#ffffff">
+                <label style="margin-top:10px;">글자 색상</label>
+                <input type="color" id="textColor" value="#000000">
+            </div>
 
-        <div class="control-group">
-            <label>메인 프로필 이미지</label>
-            <input type="file" id="profileImg" accept="image/*">
-            <label style="margin-top:5px;">크기 조절</label>
-            <input type="range" id="imgScale" min="0.1" max="3" step="0.1" value="1">
-            <label style="margin-top:5px;">가로 위치 (X)</label>
-            <input type="range" id="imgX" min="-500" max="500" value="0">
-            <label style="margin-top:5px;">세로 위치 (Y)</label>
-            <input type="range" id="imgY" min="-500" max="500" value="0">
-            <label style="margin-top:5px;">방향 (회전)</label>
-            <input type="range" id="imgRotate" min="-180" max="180" value="0">
-        </div>
+            <div class="control-group">
+                <label>폰트 선택</label>
+                <select id="fontSelect">
+                    <option value="'Noto Sans KR'">Noto Sans KR</option>
+                    <option value="'Nanum Myeongjo'">Nanum Myeongjo</option>
+                    <option value="'Gowun Dodum'">Gowun Dodum</option>
+                    <option value="'Jua'">Jua</option>
+                </select>
+            </div>
 
-        <div class="control-group">
-            <label>성향 (자유 선택)</label>
-            <div class="checkbox-group" id="traitChecks">
-                <input type="checkbox" id="t1" value="HL"><label for="t1">HL</label>
-                <input type="checkbox" id="t2" value="BL"><label for="t2">BL</label>
-                <input type="checkbox" id="t3" value="GL"><label for="t3">GL</label>
-                <input type="checkbox" id="t4" value="NCP"><label for="t4">NCP</label>
-                <input type="checkbox" id="t5" value="ALL"><label for="t5">ALL</label>
-                <input type="checkbox" id="t6" value="Dream"><label for="t6">Dream</label>
-                <input type="checkbox" id="t7" value="CP"><label for="t7">CP</label>
+            <div class="control-group">
+                <label>닉네임</label>
+                <input type="text" id="inputNickname" value="닉네임">
+                <label style="margin-top:10px;">나이</label>
+                <div class="radio-group">
+                    <input type="radio" name="age" id="age1" value="성인" checked><label for="age1">성인</label>
+                    <input type="radio" name="age" id="age2" value="미성년자"><label for="age2">미성년자</label>
+                    <input type="radio" name="age" id="age3" value="비밀"><label for="age3">비밀</label>
+                </div>
+                
+                <label style="margin-top:10px;">@ (아이디)</label>
+                <input type="text" id="inputId" value="@username">
+
+                <label style="margin-top:10px;">이별 방식</label>
+                <div class="radio-group">
+                    <input type="radio" name="parting" id="part1" value="블블" checked><label for="part1">블블</label>
+                    <input type="radio" name="parting" id="part2" value="블언블"><label for="part2">블언블</label>
+                </div>
+
+                <label style="margin-top:10px;">장르</label>
+                <input type="text" id="inputGenre" value="장르명">
+            </div>
+
+            <div class="control-group">
+                <label>메인 프로필 이미지</label>
+                <input type="file" id="profileImg" accept="image/*">
+                <label>크기 조절</label>
+                <input type="range" id="imgScale" min="0.1" max="3" step="0.1" value="1">
+                <label>가로 위치 (X)</label>
+                <input type="range" id="imgX" min="-500" max="500" value="0">
+                <label>세로 위치 (Y)</label>
+                <input type="range" id="imgY" min="-500" max="500" value="0">
+                <label>방향 (회전)</label>
+                <input type="range" id="imgRotate" min="-180" max="180" value="0">
+            </div>
+
+            <div class="control-group">
+                <label>성향 (자유 선택)</label>
+                <div class="checkbox-group" id="traitChecks">
+                    <input type="checkbox" id="t1" value="HL"><label for="t1">HL</label>
+                    <input type="checkbox" id="t2" value="BL"><label for="t2">BL</label>
+                    <input type="checkbox" id="t3" value="GL"><label for="t3">GL</label>
+                    <input type="checkbox" id="t4" value="NCP"><label for="t4">NCP</label>
+                    <input type="checkbox" id="t5" value="ALL"><label for="t5">ALL</label>
+                    <input type="checkbox" id="t6" value="Dream"><label for="t6">Dream</label>
+                    <input type="checkbox" id="t7" value="CP"><label for="t7">CP</label>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>탐라 (자유 선택)</label>
+                <div class="checkbox-group" id="tlChecks">
+                    <input type="checkbox" id="tl1" value="구독"><label for="tl1">구독</label>
+                    <input type="checkbox" id="tl2" value="소비"><label for="tl2">소비</label>
+                    <input type="checkbox" id="tl3" value="로그"><label for="tl3">로그</label>
+                    <input type="checkbox" id="tl4" value="연성"><label for="tl4">연성</label>
+                    <input type="checkbox" id="tl5" value="사담"><label for="tl5">사담</label>
+                    <input type="checkbox" id="tl6" value="RT"><label for="tl6">RT</label>
+                    <input type="checkbox" id="tl7" value="인용"><label for="tl7">인용</label>
+                    <input type="checkbox" id="tl8" value="마음"><label for="tl8">마음</label>
+                    <input type="checkbox" id="tl9" value="탐라 대화"><label for="tl9">탐라 대화</label>
+                    <input type="checkbox" id="tl10" value="프롬프트"><label for="tl10">프롬프트</label>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>자유 작성란 (영역 넓어짐)</label>
+                <textarea id="inputFreeText" rows="6">자유롭게 입력하세요.</textarea>
+            </div>
+
+            <div class="control-group">
+                <label>사이드 첨부파일 (사진 크기 조절 추가)</label>
+                <hr style="margin:10px 0; border-top:1px solid #555;">
+                <label>사진 1</label>
+                <input type="file" id="attach1" accept="image/*">
+                <input type="range" id="scale1" min="0.1" max="3" step="0.1" value="1" title="크기 조절">
+                <input type="text" id="attachText1" placeholder="사진 1 설명">
+                <hr style="margin:10px 0; border-top:1px solid #555;">
+                <label>사진 2</label>
+                <input type="file" id="attach2" accept="image/*">
+                <input type="range" id="scale2" min="0.1" max="3" step="0.1" value="1" title="크기 조절">
+                <input type="text" id="attachText2" placeholder="사진 2 설명">
+                <hr style="margin:10px 0; border-top:1px solid #555;">
+                <label>사진 3</label>
+                <input type="file" id="attach3" accept="image/*">
+                <input type="range" id="scale3" min="0.1" max="3" step="0.1" value="1" title="크기 조절">
+                <input type="text" id="attachText3" placeholder="사진 3 설명">
+                <hr style="margin:10px 0; border-top:1px solid #555;">
+                <label>사진 4</label>
+                <input type="file" id="attach4" accept="image/*">
+                <input type="range" id="scale4" min="0.1" max="3" step="0.1" value="1" title="크기 조절">
+                <input type="text" id="attachText4" placeholder="사진 4 설명">
             </div>
         </div>
-
-        <div class="control-group">
-            <label>탐라 (자유 선택)</label>
-            <div class="checkbox-group" id="tlChecks">
-                <input type="checkbox" id="tl1" value="구독"><label for="tl1">구독</label>
-                <input type="checkbox" id="tl2" value="소비"><label for="tl2">소비</label>
-                <input type="checkbox" id="tl3" value="로그"><label for="tl3">로그</label>
-                <input type="checkbox" id="tl4" value="연성"><label for="tl4">연성</label>
-                <input type="checkbox" id="tl5" value="사담"><label for="tl5">사담</label>
-                <input type="checkbox" id="tl6" value="RT"><label for="tl6">RT</label>
-                <input type="checkbox" id="tl7" value="인용"><label for="tl7">인용</label>
-                <input type="checkbox" id="tl8" value="마음"><label for="tl8">마음</label>
-                <input type="checkbox" id="tl9" value="탐라 대화"><label for="tl9">탐라 대화</label>
-                <input type="checkbox" id="tl10" value="프롬프트"><label for="tl10">프롬프트</label>
-                <input type="checkbox" id="tl11" value="Ai 이미지"><label for="tl11">Ai 이미지</label>
-            </div>
+        
+        <div class="save-btn-container">
+            <button class="save-btn" onclick="saveImage()">저장하기</button>
         </div>
-
-        <div class="control-group">
-            <label>자유 작성란</label>
-            <textarea id="inputFreeText" rows="4">자유롭게 입력하세요.</textarea>
-        </div>
-
-        <div class="control-group">
-            <label>하단 첨부파일 (최대 4장)</label>
-            <input type="file" id="attach1" accept="image/*">
-            <input type="text" id="attachText1" placeholder="사진 1 설명">
-            <input type="file" id="attach2" accept="image/*" style="margin-top:5px;">
-            <input type="text" id="attachText2" placeholder="사진 2 설명">
-            <input type="file" id="attach3" accept="image/*" style="margin-top:5px;">
-            <input type="text" id="attachText3" placeholder="사진 3 설명">
-            <input type="file" id="attach4" accept="image/*" style="margin-top:5px;">
-            <input type="text" id="attachText4" placeholder="사진 4 설명">
-        </div>
-
-        <button class="save-btn" onclick="saveImage()">저장하기</button>
     </div>
 
     <div id="preview-wrapper">
         <div id="canvas-scale-wrapper">
-            <div id="canvas-area">
-                <div class="folder" id="renderFolder">
-                    <div class="paper-bg p1"></div>
-                    <div class="paper-bg p2"></div>
-                    <div class="paper-main" id="renderPaper">
-                        
-                        <div class="header-section">
-                            <table class="info-table">
-                                <tr>
-                                    <td>NAME</td>
-                                    <td><span id="outNickname">닉네임</span> <span id="outAge" style="font-size:25px; border:2px solid; padding:2px 10px; border-radius:10px; margin-left:10px;">성인</span></td>
-                                </tr>
-                                <tr>
-                                    <td>@</td>
-                                    <td id="outId">@username</td>
-                                </tr>
-                                <tr>
-                                    <td>이별</td>
-                                    <td id="outParting">블블</td>
-                                </tr>
-                                <tr>
-                                    <td>장르</td>
-                                    <td id="outGenre">장르명</td>
-                                </tr>
-                            </table>
-                            
-                            <div class="profile-img-container">
-                                <img id="outProfileImg" src="" style="display:none; width:100%;">
-                            </div>
-                        </div>
-
-                        <hr>
-
-                        <div style="font-size: 35px; font-weight: bold; margin-bottom: 10px;">성향</div>
-                        <div class="tag-display-area" id="outTraits">
-                            </div>
-
-                        <div style="font-size: 35px; font-weight: bold; margin-top: 30px; margin-bottom: 10px;">탐라</div>
-                        <div class="tag-display-area" id="outTl">
-                            </div>
-
-                        <hr>
-
-                        <div class="free-text-area" id="outFreeText">자유롭게 입력하세요.</div>
-
-                        <div class="attachment-section">
-                            <div class="attach-box" id="box1" style="display:none;">
-                                <div class="tape"></div>
-                                <div class="img-area" id="outAttach1"></div>
-                                <div class="text-area" id="outAttachText1"></div>
-                            </div>
-                            <div class="attach-box" id="box2" style="display:none;">
-                                <div class="tape"></div>
-                                <div class="img-area" id="outAttach2"></div>
-                                <div class="text-area" id="outAttachText2"></div>
-                            </div>
-                            <div class="attach-box" id="box3" style="display:none;">
-                                <div class="tape"></div>
-                                <div class="img-area" id="outAttach3"></div>
-                                <div class="text-area" id="outAttachText3"></div>
-                            </div>
-                            <div class="attach-box" id="box4" style="display:none;">
-                                <div class="tape"></div>
-                                <div class="img-area" id="outAttach4"></div>
-                                <div class="text-area" id="outAttachText4"></div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // DOM 요소 맵핑 및 실시간 업데이트 로직
-        const root = document.documentElement;
-
-        // 색상 및 폰트 변경
-        document.getElementById('bgColor').addEventListener('input', (e) => { root.style.setProperty('--bg-color', e.target.value); });
-        document.getElementById('folderColor').addEventListener('input', (e) => { root.style.setProperty('--folder-color', e.target.value); });
-        document.getElementById('paperColor').addEventListener('input', (e) => { root.style.setProperty('--paper-color', e.target.value); });
-        document.getElementById('textColor').addEventListener('input', (e) => { root.style.setProperty('--text-color', e.target.value); });
-        document.getElementById('fontSelect').addEventListener('change', (e) => { root.style.setProperty('--font-family', e.target.value); });
-
-        // 배경 이미지 처리
-        document.getElementById('bgImage').addEventListener('change', function(e) {
-            if(e.target.files[0]) {
-                const url = URL.createObjectURL(e.target.files[0]);
-                document.getElementById('canvas-area').style.backgroundImage = `url(${url})`;
-            }
-        });
-
-        // 텍스트 필드 변경
-        const bindText = (inputId, outId) => {
-            document.getElementById(inputId).addEventListener('input', (e) => {
-                document.getElementById(outId).innerText = e.target.value;
-            });
-        };
-        bindText('inputNickname', 'outNickname');
-        bindText('inputId', 'outId');
-        bindText('inputGenre', 'outGenre');
-        bindText('inputFreeText', 'outFreeText');
-
-        // 라디오 버튼 변경 (나이, 이별)
-        document.getElementsByName('age').forEach(radio => {
-            radio.addEventListener('change', (e) => { document.getElementById('outAge').innerText = e.target.value; });
-        });
-        document.getElementsByName('parting').forEach(radio => {
-            radio.addEventListener('change', (e) => { document.getElementById('outParting').innerText = e.target.value; });
-        });
-
-        // 체크박스 태그 렌더링 로직 (색상 반전 적용)
-        const updateTags = (containerId, outId) => {
-            const container = document.getElementById(containerId);
-            const checkboxes = container.querySelectorAll('input[type="checkbox"]');
-            const outArea = document.getElementById(outId);
-            
-            const render = () => {
-                outArea.innerHTML = '';
-                checkboxes.forEach(cb => {
-                    const div = document.createElement('div');
-                    div.className = 'tag-badge ' + (cb.checked ? 'selected' : '');
-                    div.innerText = cb.value;
-                    outArea.appendChild(div);
-                });
-            };
-            checkboxes.forEach(cb => cb.addEventListener('change', render));
-            render(); // 초기 렌더링
-        };
-        updateTags('traitChecks', 'outTraits');
-        updateTags('tlChecks', 'outTl');
-
-        // 메인 프로필 이미지 및 컨트롤 (바 형식)
-        const profileImg = document.getElementById('outProfileImg');
-        let imgState = { scale: 1, x: 0, y: 0, rotate: 0 };
-        
-        const updateImgTransform = () => {
-            profileImg.style.transform = `translate(${imgState.x}px, ${imgState.y}px) scale(${imgState.scale}) rotate(${imgState.rotate}deg)`;
-        };
-
-        document.getElementById('profileImg').addEventListener('change', (e) => {
-            if(e.target.files[0]) {
-                profileImg.src = URL.createObjectURL(e.target.files[0]);
-                profileImg.style.display = 'block';
-            }
-        });
-        document.getElementById('imgScale').addEventListener('input', (e) => { imgState.scale = e.target.value; updateImgTransform(); });
-        document.getElementById('imgX').addEventListener('input', (e) => { imgState.x = e.target.value; updateImgTransform(); });
-        document.getElementById('imgY').addEventListener('input', (e) => { imgState.y = e.target.value; updateImgTransform(); });
-        document.getElementById('imgRotate').addEventListener('input', (e) => { imgState.rotate = e.target.value; updateImgTransform(); });
-
-        // 하단 첨부파일 로직
-        const handleAttach = (index) => {
-            document.getElementById(`attach${index}`).addEventListener('change', (e) => {
-                if(e.target.files[0]) {
-                    const url = URL.createObjectURL(e.target.files[0]);
-                    document.getElementById(`box${index}`).style.display = 'flex';
-                    document.getElementById(`outAttach${index}`).style.backgroundImage = `url(${url})`;
-                }
-            });
-            document.getElementById(`attachText${index}`).addEventListener('input', (e) => {
-                document.getElementById(`outAttachText${index}`).innerText = e.target.value;
-            });
-        };
-        [1, 2, 3, 4].forEach(handleAttach);
-
-        // 고화질 저장 로직
-        function saveImage() {
-            const canvasArea = document.getElementById('canvas-area');
-            // 캡처를 위해 잠시 스케일 원래대로 (2160x1730 1:1 사이즈)
-            canvasArea.style.transform = 'scale(1)';
-            
-            html2canvas(canvasArea, {
-                scale: 1, // 1:1 매칭
-                useCORS: true,
-                backgroundColor: null // CSS 배경 유지
-            }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = '자기소개표.png';
-                link.href = canvas.toDataURL('image/png', 1.0);
-                link.click();
-                
-                // 스케일 원상복구
-                canvasArea.style.transform = 'scale(0.4)';
-            });
-        }
-    </script>
-</body>
-</html>
+            <div id="canvas-
