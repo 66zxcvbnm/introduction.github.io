@@ -5,313 +5,270 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>자기소개표 메이커</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Nanum+Pen+Script&family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+    
     <style>
         :root {
+            /* 기본 색상 변수 */
             --bg-color: #1a1a1a;
-            --folder-color: #900000;
+            --folder-color: #8c1010;
             --paper-color: #f4f4f0;
-            --text-color: #333333;
+            --text-color: #222222;
             --font-family: 'Noto Sans KR', sans-serif;
         }
 
         body {
-            background-color: #333;
-            color: #fff;
-            font-family: sans-serif;
-            display: flex;
-            margin: 0;
-            height: 100vh;
-            overflow: hidden;
+            margin: 0; padding: 0;
+            background-color: #333; color: #fff;
+            font-family: 'Noto Sans KR', sans-serif;
+            display: flex; height: 100vh; overflow: hidden;
         }
 
-        /* 왼쪽 설정 패널 */
+        /* 왼쪽 설정 패널 (스크롤 가능) */
         #controls {
-            width: 350px;
-            background: #222;
-            padding: 20px;
-            overflow-y: auto;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.5);
-            z-index: 10;
+            width: 380px; background: #222; padding: 20px;
+            overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.5); z-index: 10;
         }
 
-        .control-group { margin-bottom: 15px; }
-        .control-group label { display: block; margin-bottom: 5px; font-size: 14px; }
-        .control-group input[type="text"], .control-group select { width: 100%; padding: 8px; box-sizing: border-box; }
+        .control-group { margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 15px; }
+        .control-group label { display: block; margin-bottom: 5px; font-size: 14px; color: #ddd; }
+        .control-group input[type="color"], .control-group select, .control-group input[type="file"] { width: 100%; margin-bottom: 5px; }
+        .control-group input[type="range"] { width: 100%; margin: 5px 0 10px 0; }
         
+        h2, h3 { margin-top: 0; font-size: 18px; color: #fff; }
+
         /* 오른쪽 미리보기 영역 */
         #preview-area {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: var(--bg-color);
-            overflow: auto;
+            flex: 1; overflow: auto; background-color: var(--bg-color);
+            display: flex; justify-content: center; align-items: center;
             position: relative;
         }
 
-        /* 실제 캡처될 영역 (2160x1730) */
+        /* 캡처를 위한 실제 크기 영역 (2160x1730) */
+        /* 화면에서는 축소되어 보이지만 저장 시 원본 화질로 저장됨 */
         #capture-wrap {
-            /* 화면에 맞게 축소해서 보여줌 */
-            transform: scale(0.35); 
+            width: 2160px; height: 1730px;
+            transform: scale(0.4); /* 화면 크기에 맞게 미리보기 축소 */
             transform-origin: center;
-        }
-
-        #capture-board {
-            width: 2160px;
-            height: 1730px;
+            display: flex; justify-content: center; align-items: center;
             position: relative;
-            background: transparent;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: var(--font-family);
-            color: var(--text-color);
         }
 
-        /* 파일철 디자인 */
+        /* 사용자 커스텀 배경 이미지 레이어 */
+        #custom-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center; z-index: 0;
+        }
+
+        /* 메인 디자인 컨테이너 */
+        #canvas-board {
+            width: 100%; height: 100%; position: relative; z-index: 1;
+            display: flex; justify-content: center; align-items: center;
+            font-family: var(--font-family); color: var(--text-color);
+        }
+
+        /* 파일철 디자인 (삐뚤어짐) */
         .folder {
-            width: 2000px;
-            height: 1600px;
-            background-color: var(--folder-color);
-            border-radius: 20px 80px 20px 20px;
-            position: absolute;
-            transform: rotate(-2deg); /* 살짝 삐뚤어짐 */
-            box-shadow: 10px 10px 30px rgba(0,0,0,0.3);
+            width: 2000px; height: 1600px; background-color: var(--folder-color);
+            border-radius: 20px 80px 20px 20px; position: absolute;
+            transform: rotate(-2deg); box-shadow: 10px 10px 40px rgba(0,0,0,0.4);
         }
 
-        /* 배경 종이들 */
+        /* 보고서 종이 뒤 겹친 종이들 */
         .bg-paper {
-            width: 1800px;
-            height: 1500px;
-            background-color: #e0ddc8;
-            position: absolute;
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+            width: 1850px; height: 1500px; background-color: #e0ddc8;
+            position: absolute; box-shadow: 3px 3px 15px rgba(0,0,0,0.2); border: 1px solid #ccc;
         }
-        .bg-paper.p1 { transform: rotate(3deg) translate(20px, -10px); }
-        .bg-paper.p2 { transform: rotate(-1deg) translate(-20px, 20px); }
+        .bg-paper.p1 { transform: rotate(3deg) translate(30px, -20px); }
+        .bg-paper.p2 { transform: rotate(-1.5deg) translate(-20px, 30px); }
 
         /* 메인 보고서 종이 (바르게) */
         .main-paper {
-            width: 1850px;
-            height: 1550px;
-            background-color: var(--paper-color);
-            position: absolute;
-            padding: 100px;
-            box-sizing: border-box;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            background-image: linear-gradient(#e5e5e5 1px, transparent 1px); /* 모눈종이 느낌 */
-            background-size: 100% 40px;
+            width: 1880px; height: 1530px; background-color: var(--paper-color);
+            position: absolute; padding: 80px 100px; box-sizing: border-box;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1); border: 1px solid #ddd;
+            display: flex; flex-direction: column;
         }
 
-        /* 상단 정보 영역 */
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 20px;
-            font-size: 32px;
-            margin-bottom: 40px;
+        /* 입력 폼 공통 디자인 */
+        input[type="text"], textarea {
+            background: transparent; border: none; font-family: inherit; color: inherit; outline: none;
         }
-        .info-row { display: flex; align-items: center; gap: 20px; border-bottom: 2px solid var(--text-color); padding-bottom: 10px; }
+        input[type="text"]::placeholder, textarea::placeholder { color: var(--text-color); opacity: 0.5; }
+
+        /* 상단 인적사항 영역 */
+        .info-grid { display: flex; flex-direction: column; gap: 20px; font-size: 34px; font-weight: bold; }
+        .info-row { display: flex; align-items: center; gap: 20px; padding-bottom: 10px; }
+        .info-input { font-size: 34px; flex: 1; border-bottom: 2px dashed var(--text-color) !important; padding: 5px; }
         
-        /* 토글 버튼 디자인 */
-        .toggle-btn {
-            border: 2px solid var(--text-color);
-            color: var(--text-color);
-            background: transparent;
-            padding: 5px 20px;
-            border-radius: 50px;
-            font-size: 28px;
-            cursor: pointer;
-            transition: all 0.2s;
+        /* 선택 버튼 (태그) 디자인 */
+        .tag-btn {
+            border: 3px solid var(--text-color); color: var(--text-color);
+            background: transparent; padding: 8px 25px; border-radius: 50px;
+            font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: inherit;
         }
-        .toggle-btn.active {
-            background-color: var(--text-color);
-            color: var(--paper-color); /* 선택 시 글자색과 배경색 반전 */
+        /* 선택 시 글자색에 맞춘 배경색, 글자는 종이색으로 반전 */
+        .tag-btn.active { background-color: var(--text-color); color: var(--paper-color); }
+
+        .divider { width: 100%; height: 3px; background-color: var(--text-color); margin: 40px 0; }
+
+        /* 성향 & 탐라 영역 */
+        .tag-section { display: flex; align-items: center; gap: 20px; font-size: 32px; font-weight: bold; margin-bottom: 25px; flex-wrap: wrap; }
+        .tag-label { min-width: 120px; }
+
+        /* 중간 자유작성란 */
+        .free-text-area {
+            width: 100%; flex: 1; border: 2px dashed var(--text-color); padding: 20px;
+            font-size: 32px; resize: none; box-sizing: border-box; margin-bottom: 40px; background: rgba(255,255,255,0.3);
         }
 
-        hr { border-color: var(--text-color); margin: 40px 0; border-width: 2px; }
-
-        /* 자유 작성란 */
-        .free-text {
-            width: 100%;
-            height: 250px;
-            background: transparent;
-            border: none;
-            font-size: 32px;
-            color: var(--text-color);
-            font-family: inherit;
-            resize: none;
-        }
-
-        /* 폴라로이드 이미지 영역 */
-        .polaroid-container {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 50px;
-        }
+        /* 하단 첨부파일 (이미지 4장) */
+        .attachments { display: flex; justify-content: space-between; gap: 30px; height: 450px; }
         .polaroid {
-            width: 380px;
-            height: 480px;
-            background: #fff;
-            padding: 20px;
-            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
-            position: relative;
+            flex: 1; background: #fff; padding: 20px 20px 60px 20px; box-shadow: 4px 4px 15px rgba(0,0,0,0.15);
+            position: relative; display: flex; flex-direction: column; align-items: center; border: 1px solid #eee;
         }
         .masking-tape {
-            position: absolute;
-            top: -15px; left: 50%;
-            transform: translateX(-50%) rotate(-2deg);
-            width: 150px; height: 40px;
-            background: rgba(230, 220, 180, 0.8);
-            box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%) rotate(-3deg);
+            width: 140px; height: 45px; background: rgba(240, 230, 190, 0.85); box-shadow: 1px 1px 3px rgba(0,0,0,0.1); z-index: 10;
         }
-        .img-box {
-            width: 100%; height: 350px;
-            background: #ccc;
-            overflow: hidden;
-            position: relative;
+        .img-container {
+            width: 100%; height: 320px; background: #e5e5e5; overflow: hidden; position: relative;
+            display: flex; justify-content: center; align-items: center;
         }
-        .img-box img {
-            position: absolute;
-            width: 100%; height: 100%;
-            object-fit: cover;
+        .img-layer {
+            position: absolute; width: 100%; height: 100%; object-fit: cover;
+            transform-origin: center; transition: transform 0.1s;
         }
-        .polaroid input[type="text"] {
-            width: 100%; border: none; border-bottom: 1px dashed #999;
-            margin-top: 20px; font-size: 24px; text-align: center; font-family: inherit;
+        .polaroid-text {
+            position: absolute; bottom: 15px; width: 90%; text-align: center; font-size: 26px; border-bottom: 1px solid #ccc !important;
         }
 
         /* 저장 버튼 */
         #save-btn {
-            position: fixed; bottom: 30px; right: 30px;
-            padding: 15px 40px; font-size: 20px; font-weight: bold;
-            background: #4CAF50; color: white; border: none;
-            border-radius: 8px; cursor: pointer; z-index: 100;
+            position: fixed; bottom: 30px; right: 30px; padding: 15px 40px;
+            font-size: 20px; font-weight: bold; background: #2b78e4; color: white;
+            border: none; border-radius: 8px; cursor: pointer; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
-        #save-btn:hover { background: #45a049; }
+        #save-btn:hover { background: #1c5baf; }
     </style>
 </head>
 <body>
 
     <div id="controls">
-        <h2>설정 패널</h2>
+        <h2>디자인 설정</h2>
+        
         <div class="control-group">
-            <label>배경색</label>
-            <input type="color" id="color-bg" value="#1a1a1a" onchange="updateColors()">
+            <label>배경 색상</label>
+            <input type="color" id="color-bg" value="#1a1a1a" onchange="updateStyles()">
+            <label>배경 이미지 첨부 (우선적용)</label>
+            <input type="file" accept="image/*" onchange="setBgImage(this)">
         </div>
+
         <div class="control-group">
             <label>파일철 색상</label>
-            <input type="color" id="color-folder" value="#900000" onchange="updateColors()">
+            <input type="color" id="color-folder" value="#8c1010" onchange="updateStyles()">
         </div>
+
         <div class="control-group">
             <label>종이 색상</label>
-            <input type="color" id="color-paper" value="#f4f4f0" onchange="updateColors()">
-        </div>
-        <div class="control-group">
-            <label>글자 색상</label>
-            <input type="color" id="color-text" value="#333333" onchange="updateColors()">
-        </div>
-        <div class="control-group">
-            <label>폰트 (이름 입력, 예: 'Gowun Dodum')</label>
-            <input type="text" id="font-family" value="sans-serif" onchange="updateColors()">
-        </div>
-        
-        <hr style="border-color:#555">
-        <p style="font-size: 12px; color: #aaa;">* 내용 입력 및 이미지 조절은 오른쪽 미리보기 화면에서 직접 클릭/입력하세요.</p>
-        <p style="font-size: 12px; color: #aaa;">* 성향, 탐라 버튼은 클릭하면 색이 채워집니다.</p>
-
-        <div class="control-group">
-            <label>이미지 1 크기</label>
-            <input type="range" min="0.5" max="2" step="0.1" value="1" oninput="updateImage(1, 'scale', this.value)">
-            <label>이미지 1 회전</label>
-            <input type="range" min="-180" max="180" value="0" oninput="updateImage(1, 'rotate', this.value)">
-        </div>
+            <input type="color" id="color-paper" value="#f4f4f0" onchange="updateStyles()">
         </div>
 
-    <div id="preview-area">
+        <div class="control-group">
+            <label>글자 & 라인 색상</label>
+            <input type="color" id="color-text" value="#222222" onchange="updateStyles()">
+        </div>
+
+        <div class="control-group">
+            <label>폰트 선택</label>
+            <select id="font-family" onchange="updateStyles()">
+                <option value="'Noto Sans KR', sans-serif">Noto Sans KR</option>
+                <option value="'Nanum Pen Script', cursive">Nanum Pen Script</option>
+                <option value="'Gowun Dodum', sans-serif">Gowun Dodum</option>
+                <option value="'Jua', sans-serif">Jua</option>
+            </select>
+        </div>
+
+        <div id="image-controls-container"></div>
+    </div>
+
+    <div id="preview-area" id="preview-container">
         <div id="capture-wrap">
-            <div id="capture-board">
+            <div id="custom-bg"></div>
+            <div id="canvas-board">
                 <div class="folder"></div>
                 <div class="bg-paper p1"></div>
                 <div class="bg-paper p2"></div>
                 
                 <div class="main-paper">
+                    
                     <div class="info-grid">
                         <div class="info-row">
-                            <strong>닉네임</strong>
-                            <input type="text" style="border:none; background:transparent; font-size:32px; font-family:inherit; color:inherit; outline:none;" placeholder="입력하세요">
-                        </div>
-                        <div class="info-row" style="border:none;">
-                            <button class="toggle-btn" onclick="this.classList.toggle('active')">성인</button>
-                            <button class="toggle-btn" onclick="this.classList.toggle('active')">미성년자</button>
-                            <button class="toggle-btn" onclick="this.classList.toggle('active')">비밀</button>
+                            <span style="width:120px;">닉네임</span>
+                            <input type="text" class="info-input" style="flex: 0.5;" placeholder="입력">
+                            <button class="tag-btn" onclick="toggleTag(this)">성인</button>
+                            <button class="tag-btn" onclick="toggleTag(this)">미성년자</button>
+                            <button class="tag-btn" onclick="toggleTag(this)">비밀</button>
                         </div>
                         <div class="info-row">
-                            <strong>아이디</strong>
-                            <input type="text" style="border:none; background:transparent; font-size:32px; font-family:inherit; color:inherit; outline:none;" placeholder="@">
+                            <span style="width:120px;">아이디</span>
+                            <input type="text" class="info-input" placeholder="@ID">
                         </div>
                         <div class="info-row">
-                            <strong>이별</strong>
-                            <button class="toggle-btn" onclick="this.classList.toggle('active')">블블</button>
-                            <button class="toggle-btn" onclick="this.classList.toggle('active')">블언블</button>
+                            <span style="width:120px;">이별</span>
+                            <button class="tag-btn" onclick="toggleTag(this)">블블</button>
+                            <button class="tag-btn" onclick="toggleTag(this)">블언블</button>
+                            <span style="width:100px; text-align:right; margin-left:auto;">장르</span>
+                            <input type="text" class="info-input" placeholder="장르 입력">
                         </div>
                     </div>
 
-                    <hr>
+                    <div class="divider"></div>
 
-                    <div style="font-size: 32px; margin-bottom: 20px;">
-                        <strong>성향: </strong>
-                        <button class="toggle-btn" onclick="this.classList.toggle('active')">HL</button>
-                        <button class="toggle-btn" onclick="this.classList.toggle('active')">BL</button>
-                        <button class="toggle-btn" onclick="this.classList.toggle('active')">GL</button>
-                        <button class="toggle-btn" onclick="this.classList.toggle('active')">NCP</button>
-                        <button class="toggle-btn" onclick="this.classList.toggle('active')">ALL</button>
-                        <button class="toggle-btn" onclick="this.classList.toggle('active')">Dream</button>
-                        <button class="toggle-btn" onclick="this.classList.toggle('active')">CP</button>
+                    <div class="tag-section">
+                        <div class="tag-label">성향</div>
+                        <button class="tag-btn" onclick="toggleTag(this)">HL</button>
+                        <button class="tag-btn" onclick="toggleTag(this)">BL</button>
+                        <button class="tag-btn" onclick="toggleTag(this)">GL</button>
+                        <button class="tag-btn" onclick="toggleTag(this)">NCP</button>
+                        <button class="tag-btn" onclick="toggleTag(this)">ALL</button>
+                        <button class="tag-btn" onclick="toggleTag(this)">Dream</button>
+                        <button class="tag-btn" onclick="toggleTag(this)">CP</button>
                     </div>
 
-                    <div style="font-size: 32px; margin-bottom: 20px;">
-                        <strong>탐라: </strong>
-                        <button class="toggle-btn" onclick="this.classList.toggle('active')">구독</button>
-                        <button class="toggle-btn" onclick="this.classList.toggle('active')">소비</button>
-                        <button class="toggle-btn" onclick="this.classList.toggle('active')">로그</button>
-                        <button class="toggle-btn" onclick="this.classList.toggle('active')">연성</button>
-                        <button class="toggle-btn" onclick="this.classList.toggle('active')">사담</button>
-                        <button class="toggle-btn" onclick="this.classList.toggle('active')">RT</button>
+                    <div class="tag-section">
+                        <div class="tag-label">탐라</div>
+                        <button class="tag-btn" onclick="toggleTag(this)">구독</button>
+                        <button class="tag-btn" onclick="toggleTag(this)">소비</button>
+                        <button class="tag-btn" onclick="toggleTag(this)">로그</button>
+                        <button class="tag-btn" onclick="toggleTag(this)">연성</button>
+                        <button class="tag-btn" onclick="toggleTag(this)">사담</button>
+                        <button class="tag-btn" onclick="toggleTag(this)">RT</button>
+                        <button class="tag-btn" onclick="toggleTag(this)">인용</button>
+                        <button class="tag-btn" onclick="toggleTag(this)">마음</button>
+                        <button class="tag-btn" onclick="toggleTag(this)">탐라 대화</button>
+                        <button class="tag-btn" onclick="toggleTag(this)">프롬프트</button>
+                        <button class="tag-btn" onclick="toggleTag(this)">Ai 이미지</button>
                     </div>
 
-                    <hr>
+                    <div class="divider"></div>
 
-                    <textarea class="free-text" placeholder="여기에 자유롭게 작성하세요..."></textarea>
+                    <textarea class="free-text-area" placeholder="자유롭게 작성해주세요..."></textarea>
 
-                    <div class="polaroid-container">
-                        <div class="polaroid">
-                            <div class="masking-tape"></div>
-                            <div class="img-box">
-                                <img id="img-preview-1" src="" style="display:none;">
-                                <input type="file" style="position:absolute; top:40%; left:20%; font-size:20px;" onchange="loadImage(this, 1)">
-                            </div>
-                            <input type="text" placeholder="내용 입력">
+                    <div class="attachments">
                         </div>
-                        <div class="polaroid">
-                            <div class="masking-tape"></div>
-                            <div class="img-box">
-                                <img id="img-preview-2" src="" style="display:none;">
-                                <input type="file" style="position:absolute; top:40%; left:20%; font-size:20px;" onchange="loadImage(this, 2)">
-                            </div>
-                            <input type="text" placeholder="내용 입력">
-                        </div>
-                        </div>
+
                 </div>
             </div>
         </div>
     </div>
 
-    <button id="save-btn" onclick="saveAsImage()">저장하기</button>
+    <button id="save-btn" onclick="saveImage()">저장하기</button>
 
     <script>
-        // CSS 변수 업데이트 (색상, 폰트)
-        function updateColors() {
+        // 1. 색상 및 폰트 실시간 적용
+        function updateStyles() {
             document.documentElement.style.setProperty('--bg-color', document.getElementById('color-bg').value);
             document.documentElement.style.setProperty('--folder-color', document.getElementById('color-folder').value);
             document.documentElement.style.setProperty('--paper-color', document.getElementById('color-paper').value);
@@ -319,47 +276,136 @@
             document.documentElement.style.setProperty('--font-family', document.getElementById('font-family').value);
         }
 
-        // 이미지 업로드 미리보기
-        function loadImage(input, imgNum) {
+        // 배경 이미지 업로드
+        function setBgImage(input) {
             if (input.files && input.files[0]) {
-                var reader = new FileReader();
+                const reader = new FileReader();
                 reader.onload = function(e) {
-                    var img = document.getElementById('img-preview-' + imgNum);
-                    img.src = e.target.result;
-                    img.style.display = 'block';
-                    input.style.display = 'none'; // 파일 선택 버튼 숨기기
+                    document.getElementById('custom-bg').style.backgroundImage = `url(${e.target.result})`;
                 }
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
-        // 이미지 크기/회전 조절 (좌측 패널에서 조작)
-        let imgTransforms = { 1: { scale: 1, rotate: 0 }, 2: { scale: 1, rotate: 0 } };
-        function updateImage(imgNum, type, value) {
-            imgTransforms[imgNum][type] = value;
-            var img = document.getElementById('img-preview-' + imgNum);
-            img.style.transform = `scale(${imgTransforms[imgNum].scale}) rotate(${imgTransforms[imgNum].rotate}deg)`;
+        // 2. 태그(버튼) 토글 기능
+        function toggleTag(btn) {
+            btn.classList.toggle('active');
         }
 
-        // 고화질 이미지 저장 (html2canvas)
-        function saveAsImage() {
-            const captureDiv = document.getElementById('capture-board');
-            
-            // 텍스트에어리어 값 고정을 위해 임시 처리 (html2canvas 버그 방지)
-            const textareas = captureDiv.querySelectorAll('textarea');
-            textareas.forEach(ta => ta.innerHTML = ta.value);
+        // 3. 첨부파일(이미지) 4개 및 컨트롤러 자동 생성
+        const attachmentsContainer = document.querySelector('.attachments');
+        const controlsContainer = document.getElementById('image-controls-container');
 
-            html2canvas(captureDiv, {
-                scale: 1, // 이미 #capture-board가 2160x1730 해상도이므로 1로 둬도 고화질
-                useCORS: true,
-                backgroundColor: document.getElementById('color-bg').value
+        for (let i = 1; i <= 4; i++) {
+            // 미리보기 영역에 폴라로이드 생성
+            attachmentsContainer.innerHTML += `
+                <div class="polaroid">
+                    <div class="masking-tape"></div>
+                    <div class="img-container">
+                        <span style="color:#aaa; font-size:20px; position:absolute; pointer-events:none;">이미지 ${i}</span>
+                        <img id="img-layer-${i}" class="img-layer" src="" style="display:none;">
+                    </div>
+                    <input type="text" class="polaroid-text" placeholder="글씨 입력">
+                </div>
+            `;
+
+            // 왼쪽 패널에 조작 바(Slider) 생성
+            controlsContainer.innerHTML += `
+                <div class="control-group">
+                    <h3>첨부 이미지 ${i} 설정</h3>
+                    <input type="file" accept="image/*" onchange="uploadImage(this, ${i})">
+                    
+                    <label>크기 조절</label>
+                    <input type="range" min="0.1" max="3" step="0.05" value="1" oninput="transformImage(${i})" id="scale-${i}">
+                    
+                    <label>회전 방향</label>
+                    <input type="range" min="-180" max="180" step="1" value="0" oninput="transformImage(${i})" id="rotate-${i}">
+                    
+                    <label>좌우 위치</label>
+                    <input type="range" min="-300" max="300" step="5" value="0" oninput="transformImage(${i})" id="x-${i}">
+                    
+                    <label>상하 위치</label>
+                    <input type="range" min="-300" max="300" step="5" value="0" oninput="transformImage(${i})" id="y-${i}">
+                </div>
+            `;
+        }
+
+        // 이미지 업로드 처리
+        function uploadImage(input, index) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById(`img-layer-${index}`);
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    // 새 이미지 업로드 시 슬라이더 초기화
+                    document.getElementById(`scale-${index}`).value = 1;
+                    document.getElementById(`rotate-${index}`).value = 0;
+                    document.getElementById(`x-${index}`).value = 0;
+                    document.getElementById(`y-${index}`).value = 0;
+                    transformImage(index);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // 이미지 크기, 회전, 위치 조절 (바 형식)
+        function transformImage(index) {
+            const img = document.getElementById(`img-layer-${index}`);
+            const scale = document.getElementById(`scale-${index}`).value;
+            const rotate = document.getElementById(`rotate-${index}`).value;
+            const x = document.getElementById(`x-${index}`).value;
+            const y = document.getElementById(`y-${index}`).value;
+            
+            img.style.transform = `translate(${x}px, ${y}px) scale(${scale}) rotate(${rotate}deg)`;
+        }
+
+        // 4. 고화질 캡처 및 저장하기 (html2canvas)
+        function saveImage() {
+            // 버튼 텍스트 변경
+            const btn = document.getElementById('save-btn');
+            const originalText = btn.innerText;
+            btn.innerText = "저장 중...";
+            btn.disabled = true;
+
+            const wrap = document.getElementById('capture-wrap');
+            
+            // 캡처 전, textarea와 input의 내용을 보존하기 위한 처리
+            const inputs = wrap.querySelectorAll('input[type="text"], textarea');
+            inputs.forEach(el => {
+                if(el.tagName.toLowerCase() === 'textarea') {
+                    el.innerHTML = el.value; // 줄바꿈 보존
+                } else {
+                    el.setAttribute('value', el.value);
+                }
+            });
+
+            // 화면 축소(scale)를 무시하고 2160x1730 원본 크기로 캡처
+            html2canvas(wrap, {
+                scale: 1, // 원본 크기 유지
+                useCORS: true, // 외부 폰트/이미지 허용
+                backgroundColor: null,
+                logging: false
             }).then(canvas => {
+                // 다운로드 링크 생성
                 const link = document.createElement('a');
-                link.download = 'profile_sheet.png';
+                link.download = '자기소개표.png'; // 고화질 PNG 저장
                 link.href = canvas.toDataURL('image/png');
                 link.click();
+                
+                // 버튼 복구
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }).catch(err => {
+                console.error("저장 오류:", err);
+                alert("저장 중 오류가 발생했습니다.");
+                btn.innerText = originalText;
+                btn.disabled = false;
             });
         }
+        
+        // 초기 폰트 및 색상 적용
+        updateStyles();
     </script>
 </body>
 </html>
