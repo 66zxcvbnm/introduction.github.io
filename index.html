@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>자기소개표</title>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
     
     <style>
@@ -22,7 +22,7 @@
             background-color: #111; color: #fff; font-family: sans-serif;
         }
 
-        /* --- 완벽하게 고정된 왼쪽 패널 --- */
+        /* --- 설정 패널 --- */
         #sidebar-wrap {
             position: absolute; top: 0; left: 0; bottom: 0; width: 400px;
             display: flex; flex-direction: column;
@@ -34,7 +34,7 @@
         }
 
         #save-section {
-            position: relative; flex-shrink: 0; padding: 20px; background: #222; border-top: 1px solid #444;
+            flex-shrink: 0; padding: 20px; background: #222; border-top: 1px solid #444;
         }
 
         #controls h2 { margin-top: 0; font-size: 1.2rem; border-bottom: 1px solid #555; padding-bottom: 10px; }
@@ -64,15 +64,22 @@
             padding: 40px; box-sizing: border-box; background-color: #2c2c2c;
         }
 
-        .canvas-scaler {
-            width: 756px; height: 605.5px; flex-shrink: 0; position: relative; margin: auto;
+        /* 캡처 붕괴 방지를 위한 구조 분리 */
+        #scale-box {
+            width: 756px; height: 605.5px; /* 2160x1730의 0.35배 */
+            position: relative; flex-shrink: 0; margin: auto;
         }
 
-        #canvas-area {
+        #zoom-wrapper {
             width: 2160px; height: 1730px;
-            background-color: var(--bg-color); background-size: cover; background-position: center;
-            position: absolute; top: 0; left: 0;
             transform: scale(0.35); transform-origin: top left;
+            position: absolute; top: 0; left: 0;
+        }
+
+        /* 실제 캡처 대상 (여기에 transform을 넣지 않음으로써 캡처 오류 원천 차단) */
+        #canvas-area {
+            width: 100%; height: 100%; position: relative;
+            background-color: var(--bg-color); background-size: cover; background-position: center;
             box-shadow: 0 0 25px rgba(0,0,0,0.8);
             font-family: var(--font-family); color: var(--text-color); overflow: hidden;
         }
@@ -93,16 +100,16 @@
         .paper-bg.p1 { transform: rotate(2deg); top: 5%; left: 5%; }
         .paper-bg.p2 { transform: rotate(-1deg); top: 4%; left: 6%; }
 
-        /* 메인 보고서 종이 */
+        /* 메인 보고서 종이 (Flex 삭제, Block으로 고정) */
         .paper-main {
             position: absolute; top: 4%; left: 5%;
             width: 68%; height: 92%;
             background-color: var(--paper-color); transform: rotate(1.5deg); 
             box-shadow: 0 0 20px rgba(0,0,0,0.3); padding: 80px 60px; box-sizing: border-box;
-            display: flex; flex-direction: column;
+            display: block; /* 절대 분리되지 않게 block으로 고정 */
         }
 
-        .header-section { display: flex; justify-content: space-between; align-items: flex-start; }
+        .header-section { display: flex; justify-content: space-between; align-items: flex-start; height: 430px; }
         .info-table { width: 55%; font-size: 32px; border-collapse: collapse; }
         .info-table td { padding: 15px 0; border-bottom: 2px solid var(--text-color); }
         .info-table td:first-child { font-weight: bold; width: 140px; }
@@ -115,41 +122,47 @@
         hr { width: 100%; border: none; border-top: 4px solid var(--text-color); margin: 30px 0; }
 
         .section-title { font-size: 32px; font-weight: bold; margin-bottom: 15px; margin-top: 10px; }
-        .tag-display-area { display: flex; flex-wrap: wrap; gap: 15px; }
+        
+        .tag-display-area { 
+            display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;
+        }
+        
         .tag-badge {
             font-size: 28px; font-weight: bold; padding: 8px 22px; border: 3px solid var(--text-color); border-radius: 50px;
         }
         .tag-badge.selected { background-color: var(--text-color); color: var(--paper-color); }
 
-        /* 자유작성란: rgba 투명도 버그 방지를 위해 단색 처리 */
+        /* 자유작성란 (절대 떨어져나가지 않도록 높이 픽셀 고정) */
         .free-text-area {
-            flex: 1; font-size: 35px; white-space: pre-wrap; line-height: 1.6;
-            padding: 20px; background-color: #f5f5f5; border-radius: 15px;
-            border: 2px solid #ddd;
+            display: block;
+            width: 100%; height: 500px; /* 고정 높이 */
+            font-size: 35px; white-space: pre-wrap; line-height: 1.6;
+            padding: 20px; box-sizing: border-box;
+            background-color: #f5f5f5; border-radius: 15px; border: 2px solid #ddd;
         }
 
-        /* --- 사이드 첨부사진 구역 --- */
+        /* --- 사이드 첨부사진 구역 (Flex 삭제, Block 및 Margin으로 고정) --- */
         #side-photos-wrap {
             position: absolute; right: 3%; top: 5%; width: 25%; height: 90%;
-            display: flex; flex-direction: column; gap: 40px; z-index: 50;
+            display: block; z-index: 50;
         }
 
         .attached-photo-group {
             position: relative; background-color: var(--paper-color); 
             padding: 15px 15px 40px 15px; box-sizing: border-box;
             border: 2px solid #ccc; box-shadow: 3px 3px 15px rgba(0,0,0,0.2);
+            margin-bottom: 40px; /* 간격 고정 */
             display: none; 
         }
 
-        /* 마스킹 테이프도 단색에 가깝게 수정 */
+        /* 마스킹 테이프 단색 고정 */
         .attached-photo-group::before {
             content: ''; position: absolute; top: -12px; left: 50%;
             transform: translateX(-50%) rotate(-4deg);
             width: 100px; height: 28px;
             background-color: #f5f5dc; 
             box-shadow: 0 1px 3px rgba(0,0,0,0.2); z-index: 10;
-            border-left: 2px dotted #ccc; 
-            border-right: 2px dotted #ccc;
+            border-left: 2px dotted #ccc; border-right: 2px dotted #ccc;
         }
 
         .photo-img-viewport {
@@ -301,67 +314,74 @@
     </div>
 
     <div id="preview-container">
-        <div class="canvas-scaler">
-            <div id="canvas-area">
-                
-                <div class="folder">
-                    <div class="paper-bg p1"></div>
-                    <div class="paper-bg p2"></div>
+        <div id="scale-box">
+            <div id="zoom-wrapper">
+                <div id="canvas-area">
                     
-                    <div class="paper-main">
-                        <div class="header-section">
-                            <table class="info-table">
-                                <tr>
-                                    <td>NAME</td>
-                                    <td><span id="outNickname">닉네임</span> <span id="outAge" style="font-size:24px; border:3px solid; padding:2px 10px; border-radius:12px; margin-left:10px;">성인</span></td>
-                                </tr>
-                                <tr>
-                                    <td>@</td>
-                                    <td id="outId">@username</td>
-                                </tr>
-                                <tr>
-                                    <td>이별</td>
-                                    <td id="outParting">블블</td>
-                                </tr>
-                                <tr>
-                                    <td>장르</td>
-                                    <td id="outGenre">장르명</td>
-                                </tr>
-                            </table>
-                            
-                            <div class="profile-img-container">
-                                <img id="outProfileImg" src="" style="display:none; width:100%;">
+                    <div class="folder">
+                        <div class="paper-bg p1"></div>
+                        <div class="paper-bg p2"></div>
+                        
+                        <div class="paper-main">
+                            <div class="header-section">
+                                <table class="info-table">
+                                    <tr>
+                                        <td>NAME</td>
+                                        <td><span id="outNickname">닉네임</span> <span id="outAge" style="font-size:24px; border:3px solid; padding:2px 10px; border-radius:12px; margin-left:10px;">성인</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>@</td>
+                                        <td id="outId">@username</td>
+                                    </tr>
+                                    <tr>
+                                        <td>이별</td>
+                                        <td id="outParting">블블</td>
+                                    </tr>
+                                    <tr>
+                                        <td>장르</td>
+                                        <td id="outGenre">장르명</td>
+                                    </tr>
+                                </table>
+                                
+                                <div class="profile-img-container">
+                                    <img id="outProfileImg" src="" style="display:none; width:100%;">
+                                </div>
                             </div>
+                            
+                            <hr>
+                            
+                            <div class="section-title">성향</div>
+                            <div class="tag-display-area" id="outTraits"></div>
+                            
+                            <div class="section-title">탐라</div>
+                            <div class="tag-display-area" id="outTl"></div>
+                            
+                            <hr>
+                            
+                            <div class="free-text-area" id="outFreeText">자유롭게 입력하세요.</div>
                         </div>
-                        <hr>
-                        <div class="section-title">성향</div>
-                        <div class="tag-display-area" id="outTraits"></div>
-                        <div class="section-title" style="margin-top: 20px;">탐라</div>
-                        <div class="tag-display-area" id="outTl"></div>
-                        <hr>
-                        <div class="free-text-area" id="outFreeText">자유롭게 입력하세요.</div>
                     </div>
-                </div>
 
-                <div id="side-photos-wrap">
-                    <div class="attached-photo-group" id="box1" style="transform: rotate(2deg);">
-                        <div class="photo-img-viewport"><div class="photo-img-area" id="outAttach1"></div></div>
-                        <div class="photo-caption" id="outAttachText1"></div>
+                    <div id="side-photos-wrap">
+                        <div class="attached-photo-group" id="box1" style="transform: rotate(2deg);">
+                            <div class="photo-img-viewport"><div class="photo-img-area" id="outAttach1"></div></div>
+                            <div class="photo-caption" id="outAttachText1"></div>
+                        </div>
+                        <div class="attached-photo-group" id="box2" style="transform: rotate(-1deg);">
+                            <div class="photo-img-viewport"><div class="photo-img-area" id="outAttach2"></div></div>
+                            <div class="photo-caption" id="outAttachText2"></div>
+                        </div>
+                        <div class="attached-photo-group" id="box3" style="transform: rotate(3deg);">
+                            <div class="photo-img-viewport"><div class="photo-img-area" id="outAttach3"></div></div>
+                            <div class="photo-caption" id="outAttachText3"></div>
+                        </div>
+                        <div class="attached-photo-group" id="box4" style="transform: rotate(-2deg);">
+                            <div class="photo-img-viewport"><div class="photo-img-area" id="outAttach4"></div></div>
+                            <div class="photo-caption" id="outAttachText4"></div>
+                        </div>
                     </div>
-                    <div class="attached-photo-group" id="box2" style="transform: rotate(-1deg);">
-                        <div class="photo-img-viewport"><div class="photo-img-area" id="outAttach2"></div></div>
-                        <div class="photo-caption" id="outAttachText2"></div>
-                    </div>
-                    <div class="attached-photo-group" id="box3" style="transform: rotate(3deg);">
-                        <div class="photo-img-viewport"><div class="photo-img-area" id="outAttach3"></div></div>
-                        <div class="photo-caption" id="outAttachText3"></div>
-                    </div>
-                    <div class="attached-photo-group" id="box4" style="transform: rotate(-2deg);">
-                        <div class="photo-img-viewport"><div class="photo-img-area" id="outAttach4"></div></div>
-                        <div class="photo-caption" id="outAttachText4"></div>
-                    </div>
-                </div>
 
+                </div>
             </div>
         </div>
     </div>
@@ -452,31 +472,48 @@
         };
         [1, 2, 3, 4].forEach(handleAttach);
 
-        // 캡처 깨짐 방지를 위한 딜레이 추가 함수
+        // 캡처 깨짐 완전 차단 로직
         function saveImage() {
             const canvasArea = document.getElementById('canvas-area');
+            const zoomWrapper = document.getElementById('zoom-wrapper');
+            const scaleBox = document.getElementById('scale-box');
+            const previewContainer = document.getElementById('preview-container');
+
+            // 캡처 전에 스크롤 위치를 맨 위로 초기화 (스크롤에 의한 잘림 방지)
+            const oldScrollTop = previewContainer.scrollTop;
+            const oldScrollLeft = previewContainer.scrollLeft;
+            previewContainer.scrollTop = 0;
+            previewContainer.scrollLeft = 0;
             
-            // 1. 캡처를 위해 크기를 원래대로(1:1) 되돌림
-            canvasArea.style.transform = 'scale(1)'; 
-            
-            // 2. 브라우저가 화면을 다시 계산할 시간을 아주 잠깐(0.1초) 줌 (분리/깨짐 방지 핵심!)
+            // 비율을 원래 크기(1:1)로 확대한 뒤
+            zoomWrapper.style.transform = 'scale(1)';
+            scaleBox.style.width = '2160px';
+            scaleBox.style.height = '1730px';
+
+            // 브라우저가 화면을 안정화할 수 있도록 여유 시간(300ms)을 줌
             setTimeout(() => {
                 html2canvas(canvasArea, {
                     scale: 1, 
                     useCORS: true, 
                     backgroundColor: null,
-                    scrollX: 0, /* 스크롤 오프셋으로 인한 깨짐 방지 */
-                    scrollY: 0
+                    scrollX: 0, 
+                    scrollY: 0,
+                    width: 2160,
+                    height: 1730
                 }).then(canvas => {
                     const link = document.createElement('a');
                     link.download = '자기소개표.png';
                     link.href = canvas.toDataURL('image/png', 1.0);
                     link.click();
                     
-                    // 3. 캡처 완료 후 다시 축소 상태로 복귀
-                    canvasArea.style.transform = 'scale(0.35)'; 
+                    // 캡처 완료 후 화면 원래대로 복구
+                    zoomWrapper.style.transform = 'scale(0.35)';
+                    scaleBox.style.width = '756px';
+                    scaleBox.style.height = '605.5px';
+                    previewContainer.scrollTop = oldScrollTop;
+                    previewContainer.scrollLeft = oldScrollLeft;
                 });
-            }, 100); // 100 밀리초 대기
+            }, 300); 
         }
     </script>
 </body>
