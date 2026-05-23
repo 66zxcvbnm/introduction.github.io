@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>자기소개표</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Nanum+Gothic:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Gugi&family=Gowun+Dodum&display=swap" rel="stylesheet">
@@ -17,79 +17,58 @@
         }
 
         body {
-            margin: 0;
-            padding: 0;
-            background-color: #1a1a1a;
-            color: #fff;
+            margin: 0; padding: 0;
+            background-color: #1a1a1a; color: #fff;
             font-family: 'Noto Sans KR', sans-serif;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden; /* 전체 페이지 스크롤 방지 */
+            display: flex; flex-direction: column;
+            /* 모바일 브라우저 주소창을 고려한 100% 높이 고정 */
+            height: 100vh; height: 100dvh;
+            overflow: hidden; 
         }
 
         header {
-            background: #111;
-            padding: 15px 20px;
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-            border-bottom: 2px solid #444;
-            flex-shrink: 0;
+            background: #111; padding: 15px 20px;
+            text-align: center; font-size: 18px; font-weight: bold;
+            border-bottom: 2px solid #444; flex-shrink: 0;
         }
 
+        /* 메인 레이아웃 (플렉스) */
         .container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-            flex-direction: row-reverse; /* 데스크톱: 미리보기 우측, 컨트롤 좌측 */
+            display: flex; flex: 1; flex-direction: row-reverse;
+            min-height: 0; /* 자식 요소 스크롤을 위해 필수 */
         }
 
-        /* 오른쪽 미리보기 영역 */
+        /* --- 오른쪽: 찌그러지지 않는 절대 비율 미리보기 영역 --- */
         .preview-wrapper {
-            flex: 1;
-            overflow: auto;
-            background: #151515;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            box-sizing: border-box;
+            flex: 1; position: relative;
+            background: #151515; overflow: hidden;
         }
 
-        /* 스케일 조절을 위한 래퍼 (빈 공간 방지용) */
-        #scale-wrapper {
-            transform-origin: center center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* 실제 캡처될 영역 (해상도 2160x1730 고정) */
         #capture-area {
-            width: 2160px;
-            height: 1730px;
+            /* 2160x1730 고정 캔버스 */
+            position: absolute;
+            width: 2160px; height: 1730px;
+            /* 화면 중앙 정렬 */
+            left: 50%; top: 50%;
+            margin-left: -1080px; /* width의 절반 */
+            margin-top: -865px; /* height의 절반 */
             background-color: var(--bg-color);
-            background-size: cover;
-            background-position: center;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            background-size: cover; background-position: center;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            transform-origin: center;
         }
 
-        /* 왼쪽 컨트롤 패널 */
+        /* --- 왼쪽: 컨트롤 패널 영역 --- */
         .controls {
-            width: 380px;
-            background: #222;
-            padding: 20px;
-            overflow-y: auto;
+            width: 380px; background: #222;
+            padding: 20px; box-sizing: border-box;
             border-right: 1px solid #444;
-            box-sizing: border-box;
+            overflow-y: auto; /* 패널 내부 스크롤 */
             flex-shrink: 0;
         }
 
+        /* 컨트롤 패널 내부 스타일 */
         .controls h3 { margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #555; padding-bottom: 10px; font-size: 16px;}
         .control-group { margin-bottom: 15px; }
         .control-group label { display: block; margin-bottom: 5px; font-size: 13px; color: #ccc; }
@@ -99,128 +78,66 @@
         .control-group input[type="color"] { width: 100%; height: 40px; border: none; cursor: pointer; border-radius: 4px; }
         .control-group input[type="range"] { width: 100%; }
         
-        /* 버튼 스타일 */
-        button.action-btn {
-            width: 100%; padding: 12px; background: #4caf50; color: white; border: none; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 5px; margin-top: 10px;
-        }
+        button.action-btn { width: 100%; padding: 15px; background: #4caf50; color: white; border: none; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 5px; margin-top: 10px; margin-bottom: 40px; }
         button.action-btn:hover { background: #45a049; }
         
         .attach-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
         .attach-row input[type="file"] { flex: 1; font-size: 12px; }
         .btn-del { background: #dc3545; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 12px; white-space: nowrap; }
-        .btn-del:hover { background: #c82333; }
 
-        /* 파일철 및 종이 디자인 */
+        /* --- 자기소개표 디자인 (비율 고정) --- */
         .folder {
-            position: absolute;
-            width: 88%; height: 90%;
+            position: absolute; width: 88%; height: 90%;
             background-color: var(--folder-color);
-            border-radius: 10px 30px 10px 10px;
-            box-shadow: 10px 10px 30px rgba(0,0,0,0.5);
-            transform: rotate(-2deg);
+            border-radius: 10px 30px 10px 10px; box-shadow: 10px 10px 30px rgba(0,0,0,0.5); transform: rotate(-2deg);
         }
-        .folder::after {
-            content: ''; position: absolute; top: -30px; right: 50px;
-            width: 250px; height: 40px;
-            background-color: var(--folder-color);
-            border-radius: 15px 15px 0 0;
-        }
-        .paper-bg {
-            position: absolute; width: 80%; height: 85%;
-            background-color: #e0e0e0;
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
-        }
+        .folder::after { content: ''; position: absolute; top: -30px; right: 50px; width: 250px; height: 40px; background-color: var(--folder-color); border-radius: 15px 15px 0 0; }
+        .paper-bg { position: absolute; width: 80%; height: 85%; background-color: #e0e0e0; box-shadow: 2px 2px 10px rgba(0,0,0,0.2); }
         .paper-bg.p1 { transform: rotate(1deg) translate(10px, 10px); }
         .paper-bg.p2 { transform: rotate(-1deg) translate(-10px, -5px); }
 
         .main-paper {
             position: relative; width: 80%; height: 85%;
-            background-color: var(--paper-color);
-            color: var(--text-color); font-family: var(--font-family);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-            padding: 60px; box-sizing: border-box;
-            display: flex; flex-direction: column;
-            transform: rotate(0deg);
+            background-color: var(--paper-color); color: var(--text-color); font-family: var(--font-family);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3); padding: 60px; box-sizing: border-box; display: flex; flex-direction: column; transform: rotate(0deg);
         }
 
-        /* 텍스트 및 태그 영역 */
         .doc-header { display: flex; justify-content: space-between; margin-bottom: 40px; }
         .info-table { width: 60%; border-collapse: collapse; font-size: 32px; }
         .info-table td { padding: 15px 0; border-bottom: 3px solid #ccc; }
         .info-table td.label { width: 150px; font-weight: bold; }
-        .inline-badge {
-            display: inline-block; border: 2px solid var(--text-color);
-            border-radius: 20px; padding: 2px 15px; font-size: 24px; margin-left: 15px;
-        }
+        .inline-badge { display: inline-block; border: 2px solid var(--text-color); border-radius: 20px; padding: 2px 15px; font-size: 24px; margin-left: 15px; }
 
-        /* 프로필 이미지 */
-        .profile-container {
-            width: 350px; height: 450px;
-            border: 5px solid var(--text-color);
-            background: #ddd; overflow: hidden; position: relative;
-        }
-        .profile-img {
-            position: absolute; width: 100%; height: auto;
-            transform-origin: center center;
-            top: 0; left: 0; right: 0; bottom: 0; margin: auto;
-        }
+        .profile-container { width: 350px; height: 450px; border: 5px solid var(--text-color); background: #ddd; overflow: hidden; position: relative; }
+        .profile-img { position: absolute; width: 100%; height: auto; transform-origin: center center; top: 0; left: 0; right: 0; bottom: 0; margin: auto; }
 
         .divider { width: 100%; height: 4px; background-color: var(--text-color); margin: 30px 0; }
 
-        /* 태그 */
-        .tag-section { margin-bottom: 30px; }
         .tag-section-title { font-size: 28px; font-weight: bold; margin-bottom: 15px; }
-        .tag-list { display: flex; flex-wrap: wrap; gap: 15px; }
-        .tag {
-            border: 3px solid var(--text-color); color: var(--text-color);
-            padding: 10px 25px; border-radius: 40px; font-size: 24px; font-weight: bold; cursor: pointer;
-        }
+        .tag-list { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 30px;}
+        .tag { border: 3px solid var(--text-color); color: var(--text-color); padding: 10px 25px; border-radius: 40px; font-size: 24px; font-weight: bold; cursor: pointer; }
         .tag.active { background-color: var(--text-color); color: var(--paper-color); }
 
-        .free-text-area {
-            flex: 1; background: transparent; border: none; width: 100%;
-            font-size: 28px; color: var(--text-color); font-family: inherit;
-            resize: none; outline: none; line-height: 1.5;
-        }
+        .free-text-area { flex: 1; background: transparent; border: none; width: 100%; font-size: 28px; color: var(--text-color); font-family: inherit; resize: none; outline: none; line-height: 1.5; }
 
-        /* 양옆 첨부파일 */
-        .attachment {
-            position: absolute; width: 300px; background: #fff;
-            padding: 15px 15px 40px 15px; box-shadow: 2px 5px 15px rgba(0,0,0,0.2);
-            display: none; text-align: center; z-index: 10;
-        }
+        /* 첨부파일 위치 (마스킹 테이프) */
+        .attachment { position: absolute; width: 300px; background: #fff; padding: 15px 15px 40px 15px; box-shadow: 2px 5px 15px rgba(0,0,0,0.2); display: none; text-align: center; z-index: 10; }
         .attachment img { width: 100%; height: auto; object-fit: cover; }
-        .masking-tape {
-            position: absolute; top: -15px; left: 50%;
-            transform: translateX(-50%) rotate(-3deg);
-            width: 120px; height: 35px;
-            background-color: rgba(255, 250, 150, 0.7);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-        .attachment input[type="text"] {
-            position: absolute; bottom: 10px; left: 10%; width: 80%;
-            border: none; background: transparent; text-align: center;
-            font-size: 20px; font-family: inherit; color: #333; outline: none;
-        }
+        .masking-tape { position: absolute; top: -15px; left: 50%; transform: translateX(-50%) rotate(-3deg); width: 120px; height: 35px; background-color: rgba(255, 250, 150, 0.7); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .attachment input[type="text"] { position: absolute; bottom: 10px; left: 10%; width: 80%; border: none; background: transparent; text-align: center; font-size: 20px; font-family: inherit; color: #333; outline: none; }
 
         #attach-0 { top: 5%; left: -120px; transform: rotate(-5deg); }
         #attach-1 { top: 5%; right: -120px; transform: rotate(4deg); }
         #attach-2 { top: 55%; left: -140px; transform: rotate(3deg); }
         #attach-3 { top: 55%; right: -140px; transform: rotate(-6deg); }
 
-        /* 모바일 대응 (화면 분할 및 스크롤) */
+        /* --- 모바일 반응형 --- */
         @media (max-width: 800px) {
-            .container { flex-direction: column; } /* 모바일: 미리보기 위, 컨트롤 아래 */
-            .preview-wrapper {
-                height: 45vh; /* 화면의 45%를 미리보기로 고정 */
-                flex: none;
-                border-bottom: 2px solid #444;
-            }
-            .controls {
-                width: 100%;
-                height: 55vh; /* 나머지 영역은 컨트롤 패널 스크롤 */
-                border-right: none;
-            }
+            .container { flex-direction: column; }
+            /* 모바일에서 미리보기는 화면의 45% 고정, 넘치지 않게 */
+            .preview-wrapper { flex: 0 0 45%; border-bottom: 2px solid #444; }
+            /* 컨트롤 영역은 나머지 영역 차지, 스크롤 보장 */
+            .controls { flex: 1; width: 100%; border-right: none; }
         }
     </style>
 </head>
@@ -230,94 +147,63 @@
 
     <div class="container">
         <div class="preview-wrapper" id="preview-wrapper">
-            <div id="scale-wrapper">
-                <div id="capture-area">
-                    <div class="folder"></div>
-                    <div class="paper-bg p1"></div>
-                    <div class="paper-bg p2"></div>
-                    
-                    <div class="main-paper" id="main-paper">
-                        <div id="attach-0" class="attachment"><div class="masking-tape"></div><img src="" id="att-img-0"><input type="text" placeholder="설명 입력"></div>
-                        <div id="attach-1" class="attachment"><div class="masking-tape"></div><img src="" id="att-img-1"><input type="text" placeholder="설명 입력"></div>
-                        <div id="attach-2" class="attachment"><div class="masking-tape"></div><img src="" id="att-img-2"><input type="text" placeholder="설명 입력"></div>
-                        <div id="attach-3" class="attachment"><div class="masking-tape"></div><img src="" id="att-img-3"><input type="text" placeholder="설명 입력"></div>
+            <div id="capture-area">
+                <div class="folder"></div>
+                <div class="paper-bg p1"></div>
+                <div class="paper-bg p2"></div>
+                
+                <div class="main-paper" id="main-paper">
+                    <div id="attach-0" class="attachment"><div class="masking-tape"></div><img src="" id="att-img-0"><input type="text" placeholder="설명 입력"></div>
+                    <div id="attach-1" class="attachment"><div class="masking-tape"></div><img src="" id="att-img-1"><input type="text" placeholder="설명 입력"></div>
+                    <div id="attach-2" class="attachment"><div class="masking-tape"></div><img src="" id="att-img-2"><input type="text" placeholder="설명 입력"></div>
+                    <div id="attach-3" class="attachment"><div class="masking-tape"></div><img src="" id="att-img-3"><input type="text" placeholder="설명 입력"></div>
 
-                        <div class="doc-header">
-                            <table class="info-table">
-                                <tr>
-                                    <td class="label">NAME</td>
-                                    <td><span id="disp-name">닉네임</span> <span class="inline-badge" id="disp-age">성인</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="label">@</td>
-                                    <td><span id="disp-id">@username</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="label">이별</td>
-                                    <td><span id="disp-farewell">블블</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="label">장르</td>
-                                    <td><span id="disp-genre">장르명</span></td>
-                                </tr>
-                            </table>
-                            <div class="profile-container">
-                                <img id="profile-img-el" class="profile-img" src="" alt="" style="display:none;">
-                            </div>
+                    <div class="doc-header">
+                        <table class="info-table">
+                            <tr>
+                                <td class="label">NAME</td>
+                                <td><span id="disp-name">닉네임</span> <span class="inline-badge" id="disp-age">성인</span></td>
+                            </tr>
+                            <tr><td class="label">@</td><td><span id="disp-id">@username</span></td></tr>
+                            <tr><td class="label">이별</td><td><span id="disp-farewell">블블</span></td></tr>
+                            <tr><td class="label">장르</td><td><span id="disp-genre">장르명</span></td></tr>
+                        </table>
+                        <div class="profile-container">
+                            <img id="profile-img-el" class="profile-img" src="" alt="" style="display:none;">
                         </div>
-
-                        <div class="divider"></div>
-
-                        <div class="tag-section">
-                            <div class="tag-section-title">성향</div>
-                            <div class="tag-list" id="tag-list-1">
-                                <div class="tag">HL</div><div class="tag">BL</div><div class="tag">GL</div>
-                                <div class="tag">NCP</div><div class="tag">ALL</div><div class="tag">Dream</div><div class="tag">CP</div>
-                            </div>
-                        </div>
-
-                        <div class="tag-section">
-                            <div class="tag-section-title">탐라</div>
-                            <div class="tag-list" id="tag-list-2">
-                                <div class="tag">구독</div><div class="tag">소비</div><div class="tag">로그</div>
-                                <div class="tag">연성</div><div class="tag">사담</div><div class="tag">RT</div>
-                                <div class="tag">인용</div><div class="tag">마음</div><div class="tag">탐라 대화</div>
-                                <div class="tag">프롬프트</div><div class="tag">Ai 이미지</div>
-                            </div>
-                        </div>
-
-                        <div class="divider"></div>
-
-                        <textarea class="free-text-area" placeholder="자유롭게 입력하세요."></textarea>
                     </div>
+
+                    <div class="divider"></div>
+
+                    <div class="tag-section-title">성향</div>
+                    <div class="tag-list" id="tag-list-1">
+                        <div class="tag">HL</div><div class="tag">BL</div><div class="tag">GL</div>
+                        <div class="tag">NCP</div><div class="tag">ALL</div><div class="tag">Dream</div><div class="tag">CP</div>
+                    </div>
+
+                    <div class="tag-section-title">탐라</div>
+                    <div class="tag-list" id="tag-list-2">
+                        <div class="tag">구독</div><div class="tag">소비</div><div class="tag">로그</div>
+                        <div class="tag">연성</div><div class="tag">사담</div><div class="tag">RT</div>
+                        <div class="tag">인용</div><div class="tag">마음</div><div class="tag">탐라 대화</div>
+                        <div class="tag">프롬프트</div><div class="tag">Ai 이미지</div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <textarea class="free-text-area" placeholder="자유롭게 입력하세요."></textarea>
                 </div>
             </div>
         </div>
 
         <div class="controls">
             <h3>디자인 설정</h3>
-            <div class="control-group">
-                <label>전체 배경색</label>
-                <input type="color" id="set-bg-color" value="#2c2c2c">
-            </div>
-            <div class="control-group">
-                <label>전체 배경 이미지 첨부</label>
-                <input type="file" id="set-bg-img" accept="image/*">
-            </div>
-            <div class="control-group">
-                <label>파일철 색상</label>
-                <input type="color" id="set-folder-color" value="#990000">
-            </div>
-            <div class="control-group">
-                <label>종이 색상</label>
-                <input type="color" id="set-paper-color" value="#f4f4f4">
-            </div>
-            <div class="control-group">
-                <label>글자 색상</label>
-                <input type="color" id="set-text-color" value="#000000">
-            </div>
-            <div class="control-group">
-                <label>폰트 선택</label>
+            <div class="control-group"><label>전체 배경색</label><input type="color" id="set-bg-color" value="#2c2c2c"></div>
+            <div class="control-group"><label>배경 이미지</label><input type="file" id="set-bg-img" accept="image/*"></div>
+            <div class="control-group"><label>파일철 색상</label><input type="color" id="set-folder-color" value="#990000"></div>
+            <div class="control-group"><label>종이 색상</label><input type="color" id="set-paper-color" value="#f4f4f4"></div>
+            <div class="control-group"><label>글자 색상</label><input type="color" id="set-text-color" value="#000000"></div>
+            <div class="control-group"><label>폰트 선택</label>
                 <select id="set-font">
                     <option value="'Noto Sans KR', sans-serif">Noto Sans KR</option>
                     <option value="'Nanum Gothic', sans-serif">Nanum Gothic</option>
@@ -330,15 +216,9 @@
             <hr style="border-color:#444; margin: 20px 0;">
             <h3>정보 입력</h3>
             <div class="control-group"><label>닉네임</label><input type="text" id="input-name" placeholder="닉네임을 입력하세요"></div>
-            <div class="control-group"><label>연령 설정</label>
-                <select id="input-age">
-                    <option value="성인">성인</option><option value="미성년자">미성년자</option><option value="비밀">비밀</option>
-                </select>
-            </div>
+            <div class="control-group"><label>연령 설정</label><select id="input-age"><option value="성인">성인</option><option value="미성년자">미성년자</option><option value="비밀">비밀</option></select></div>
             <div class="control-group"><label>@ (아이디)</label><input type="text" id="input-id" placeholder="@username"></div>
-            <div class="control-group"><label>이별 방식</label>
-                <select id="input-farewell"><option value="블블">블블</option><option value="블언블">블언블</option></select>
-            </div>
+            <div class="control-group"><label>이별 방식</label><select id="input-farewell"><option value="블블">블블</option><option value="블언블">블언블</option></select></div>
             <div class="control-group"><label>장르명</label><input type="text" id="input-genre" placeholder="장르명을 입력하세요"></div>
 
             <hr style="border-color:#444; margin: 20px 0;">
@@ -350,36 +230,11 @@
             <div class="control-group"><label>방향 회전</label><input type="range" id="img-rotate" min="-180" max="180" step="1" value="0"></div>
 
             <hr style="border-color:#444; margin: 20px 0;">
-            <h3>개별 사이드 첨부파일 (마스킹 테이프)</h3>
-            
-            <div class="control-group">
-                <label>1. 왼쪽 위 이미지</label>
-                <div class="attach-row">
-                    <input type="file" id="attach-file-0" accept="image/*">
-                    <button class="btn-del" onclick="clearAttach(0)">삭제</button>
-                </div>
-            </div>
-            <div class="control-group">
-                <label>2. 오른쪽 위 이미지</label>
-                <div class="attach-row">
-                    <input type="file" id="attach-file-1" accept="image/*">
-                    <button class="btn-del" onclick="clearAttach(1)">삭제</button>
-                </div>
-            </div>
-            <div class="control-group">
-                <label>3. 왼쪽 아래 이미지</label>
-                <div class="attach-row">
-                    <input type="file" id="attach-file-2" accept="image/*">
-                    <button class="btn-del" onclick="clearAttach(2)">삭제</button>
-                </div>
-            </div>
-            <div class="control-group">
-                <label>4. 오른쪽 아래 이미지</label>
-                <div class="attach-row">
-                    <input type="file" id="attach-file-3" accept="image/*">
-                    <button class="btn-del" onclick="clearAttach(3)">삭제</button>
-                </div>
-            </div>
+            <h3>개별 사이드 첨부파일</h3>
+            <div class="control-group"><label>1. 왼쪽 위</label><div class="attach-row"><input type="file" id="attach-file-0" accept="image/*"><button class="btn-del" onclick="clearAttach(0)">삭제</button></div></div>
+            <div class="control-group"><label>2. 오른쪽 위</label><div class="attach-row"><input type="file" id="attach-file-1" accept="image/*"><button class="btn-del" onclick="clearAttach(1)">삭제</button></div></div>
+            <div class="control-group"><label>3. 왼쪽 아래</label><div class="attach-row"><input type="file" id="attach-file-2" accept="image/*"><button class="btn-del" onclick="clearAttach(2)">삭제</button></div></div>
+            <div class="control-group"><label>4. 오른쪽 아래</label><div class="attach-row"><input type="file" id="attach-file-3" accept="image/*"><button class="btn-del" onclick="clearAttach(3)">삭제</button></div></div>
 
             <hr style="border-color:#444; margin: 20px 0;">
             <button class="action-btn" id="btn-save">저장하기</button>
@@ -387,26 +242,24 @@
     </div>
 
     <script>
-        // 1. 화면 스케일 조정 (화면 크기에 맞게 미리보기 축소)
+        // 1. 비율 깨짐 방지: 절대 좌표로 배치하고 크기만 스케일 조정
         function resizePreview() {
             const wrapper = document.getElementById('preview-wrapper');
-            const scaleWrapper = document.getElementById('scale-wrapper');
+            const captureArea = document.getElementById('capture-area');
             
-            // 래퍼 영역 크기에 맞춰 2160x1730 비율 축소
-            const scaleX = wrapper.clientWidth / 2300;
-            const scaleY = wrapper.clientHeight / 1900;
+            // 여백(Padding)을 약간 주어 크기를 맞춤
+            const scaleX = (wrapper.clientWidth - 40) / 2160;
+            const scaleY = (wrapper.clientHeight - 40) / 1730;
             const scale = Math.min(scaleX, scaleY);
             
-            scaleWrapper.style.transform = `scale(${scale})`;
-            scaleWrapper.style.width = `${2160 * scale}px`;
-            scaleWrapper.style.height = `${1730 * scale}px`;
+            // 직접 Width/Height를 건드리지 않고, css의 transform: scale 만 조정
+            captureArea.style.transform = `scale(${scale})`;
         }
         window.addEventListener('resize', resizePreview);
-        // DOM 로드 후 즉시 실행 및 약간 지연 실행(모바일 높이 계산용)
         resizePreview();
-        setTimeout(resizePreview, 100);
+        setTimeout(resizePreview, 100); // 폰트 로드 후 모바일 대응
 
-        // 2. 디자인 설정 연동
+        // 2. 디자인 연동
         const root = document.documentElement;
         document.getElementById('set-bg-color').addEventListener('input', (e) => root.style.setProperty('--bg-color', e.target.value));
         document.getElementById('set-folder-color').addEventListener('input', (e) => root.style.setProperty('--folder-color', e.target.value));
@@ -418,47 +271,34 @@
             const file = e.target.files[0];
             if(file) {
                 const reader = new FileReader();
-                reader.onload = (event) => {
-                    document.getElementById('capture-area').style.backgroundImage = `url(${event.target.result})`;
-                }
+                reader.onload = (event) => document.getElementById('capture-area').style.backgroundImage = `url(${event.target.result})`;
                 reader.readAsDataURL(file);
             }
         });
 
-        // 3. 텍스트 정보 연동
+        // 3. 텍스트 연동
         const syncText = (inputId, dispId) => {
             document.getElementById(inputId).addEventListener('input', (e) => {
                 document.getElementById(dispId).innerText = e.target.value || e.target.placeholder || e.target.options[e.target.selectedIndex].text;
             });
         };
-        syncText('input-name', 'disp-name');
-        syncText('input-id', 'disp-id');
-        syncText('input-genre', 'disp-genre');
+        syncText('input-name', 'disp-name'); syncText('input-id', 'disp-id'); syncText('input-genre', 'disp-genre');
         document.getElementById('input-age').addEventListener('change', (e) => document.getElementById('disp-age').innerText = e.target.value);
         document.getElementById('input-farewell').addEventListener('change', (e) => document.getElementById('disp-farewell').innerText = e.target.value);
 
-        // 4. 태그 클릭 이벤트
-        document.querySelectorAll('.tag').forEach(tag => {
-            tag.addEventListener('click', function() {
-                this.classList.toggle('active');
-            });
-        });
+        // 4. 태그 연동
+        document.querySelectorAll('.tag').forEach(tag => tag.addEventListener('click', function() { this.classList.toggle('active'); }));
 
         // 5. 프로필 이미지 로직
         const profileImgEl = document.getElementById('profile-img-el');
         let imgState = { scale: 1, x: 0, y: 0, rotate: 0 };
-        const updateTransform = () => {
-            profileImgEl.style.transform = `translate(${imgState.x}px, ${imgState.y}px) scale(${imgState.scale}) rotate(${imgState.rotate}deg)`;
-        };
+        const updateTransform = () => profileImgEl.style.transform = `translate(${imgState.x}px, ${imgState.y}px) scale(${imgState.scale}) rotate(${imgState.rotate}deg)`;
 
         document.getElementById('input-profile-img').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if(file) {
                 const reader = new FileReader();
-                reader.onload = (event) => {
-                    profileImgEl.src = event.target.result;
-                    profileImgEl.style.display = 'block';
-                }
+                reader.onload = (event) => { profileImgEl.src = event.target.result; profileImgEl.style.display = 'block'; }
                 reader.readAsDataURL(file);
             }
         });
@@ -467,7 +307,7 @@
         document.getElementById('img-y').addEventListener('input', (e) => { imgState.y = e.target.value; updateTransform(); });
         document.getElementById('img-rotate').addEventListener('input', (e) => { imgState.rotate = e.target.value; updateTransform(); });
 
-        // 6. 개별 사이드 첨부파일 로직 (4개 각각 독립적)
+        // 6. 개별 사이드 첨부파일
         for(let i=0; i<4; i++) {
             document.getElementById(`attach-file-${i}`).addEventListener('change', function(e) {
                 const file = e.target.files[0];
@@ -481,7 +321,6 @@
                 }
             });
         }
-        // 개별 삭제 함수
         function clearAttach(index) {
             document.getElementById(`attach-file-${index}`).value = '';
             document.getElementById(`att-img-${index}`).src = '';
@@ -491,23 +330,27 @@
         // 7. 고화질 저장하기 로직
         document.getElementById('btn-save').addEventListener('click', () => {
             const captureArea = document.getElementById('capture-area');
+            const originalTransform = captureArea.style.transform;
             const originalBoxShadow = captureArea.style.boxShadow;
-            captureArea.style.boxShadow = 'none'; // 캡처시 불필요한 외곽 그림자 제거
+            
+            // 캡처 전, 그림자를 끄고 스케일을 원래크기(1)로 변경
+            captureArea.style.transform = 'scale(1)';
+            captureArea.style.boxShadow = 'none';
             
             html2canvas(captureArea, {
-                width: 2160,
-                height: 1730,
-                scale: 1, 
-                useCORS: true,
-                backgroundColor: null 
+                width: 2160, height: 1730, scale: 1, useCORS: true, backgroundColor: null 
             }).then(canvas => {
+                // 원래 뷰로 원상복귀
+                captureArea.style.transform = originalTransform;
                 captureArea.style.boxShadow = originalBoxShadow;
+                
                 const link = document.createElement('a');
                 link.download = '자기소개표.png';
                 link.href = canvas.toDataURL('image/png');
                 link.click();
             }).catch(err => {
                 console.error(err);
+                captureArea.style.transform = originalTransform;
                 captureArea.style.boxShadow = originalBoxShadow;
                 alert('저장 중 오류가 발생했습니다.');
             });
