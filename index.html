@@ -5,510 +5,469 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>자기소개표</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Nanum+Myeongjo:wght@400;700&family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
-    
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Nanum+Gothic&family=Nanum+Myeongjo&family=Nanum+Pen+Script&display=swap');
+
         :root {
-            --bg-color: #1a1a1a;
+            --bg-color: #2c2c2c;
             --folder-color: #8b0000;
             --paper-color: #ffffff;
             --text-color: #000000;
-            --font-family: 'Noto Sans KR', sans-serif;
         }
 
-        html, body {
-            margin: 0; padding: 0; width: 100%; height: 100%; 
-            overflow: hidden; 
-            background-color: #111; color: #fff; font-family: sans-serif;
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a1a;
+            color: #fff;
+            display: flex;
+            height: 100vh;
+            font-family: 'Noto Sans KR', sans-serif;
+            overflow: hidden;
         }
 
-        /* --- 설정 패널 --- */
-        #sidebar-wrap {
-            position: absolute; top: 0; left: 0; bottom: 0; width: 400px;
-            display: flex; flex-direction: column;
-            background: #333; border-right: 2px solid #555; z-index: 1000;
+        /* 좌우 사이드바 패널 */
+        .panel {
+            width: 300px;
+            background: #333;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 10;
         }
 
-        #controls {
-            flex: 1; overflow-y: auto; padding: 20px; box-sizing: border-box;
+        .panel h3 { margin-top: 0; border-bottom: 1px solid #555; padding-bottom: 10px; }
+        .control-group { margin-bottom: 15px; }
+        .control-group label { display: block; margin-bottom: 5px; font-size: 14px; }
+        .control-group input[type="color"] { width: 100%; height: 30px; border: none; cursor: pointer; }
+        .control-group select, .control-group input[type="file"] { width: 100%; padding: 5px; }
+        .control-group input[type="range"] { width: 100%; }
+        
+        button.action-btn {
+            width: 100%; padding: 15px; background: #4CAF50; color: white;
+            border: none; font-size: 16px; font-weight: bold; cursor: pointer;
+            margin-top: 20px; border-radius: 5px;
+        }
+        button.action-btn:hover { background: #45a049; }
+
+        /* 중앙 미리보기 영역 */
+        .workspace {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--bg-color);
+            background-size: cover;
+            background-position: center;
+            overflow: auto;
+            padding: 50px;
         }
 
-        #save-section {
-            flex-shrink: 0; padding: 20px; background: #222; border-top: 1px solid #444;
+        /* 2160x1730 실제 해상도 캔버스 영역 */
+        .canvas-container {
+            width: 2160px;
+            height: 1730px;
+            position: relative;
+            /* 화면에 맞게 축소해서 보여줌 (저장할 땐 원본 크기로 됨) */
+            transform: scale(0.35); 
+            transform-origin: center;
+            transition: transform 0.3s;
         }
 
-        #controls h2 { margin-top: 0; font-size: 1.2rem; border-bottom: 1px solid #555; padding-bottom: 10px; }
-        .control-group { margin-bottom: 15px; background: #444; padding: 15px; border-radius: 5px; }
-        label { display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: bold; }
-        input[type="text"], input[type="color"], select, textarea {
-            width: 100%; padding: 8px; box-sizing: border-box; background: #222; color: #fff; border: 1px solid #555; border-radius: 4px;
-        }
-        input[type="range"] { width: 100%; margin: 5px 0 10px 0; }
-        .radio-group, .checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; }
-        .radio-group label, .checkbox-group label {
-            display: inline-block; background: #555; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;
-        }
-        .checkbox-group input[type="checkbox"], .radio-group input[type="radio"] { display: none; }
-        .checkbox-group input[type="checkbox"]:checked + label,
-        .radio-group input[type="radio"]:checked + label { background: #fff; color: #000; font-weight: bold; }
-
-        button.save-btn {
-            width: 100%; padding: 15px; background: #4CAF50; color: white; border: none; font-size: 1.2rem; font-weight: bold; cursor: pointer; border-radius: 5px;
-        }
-        button.save-btn:hover { background: #45a049; }
-
-        /* --- 오른쪽 미리보기 화면 --- */
-        #preview-container {
-            position: absolute; top: 0; bottom: 0; right: 0; left: 400px;
-            overflow: auto; display: flex; align-items: center; justify-content: center;
-            padding: 40px; box-sizing: border-box; background-color: #2c2c2c;
-        }
-
-        #scale-box {
-            width: 756px; height: 605.5px; /* 2160x1730의 0.35배 */
-            position: relative; flex-shrink: 0; margin: auto;
-        }
-
-        #zoom-wrapper {
-            width: 2160px; height: 1730px;
-            transform: scale(0.35); transform-origin: top left;
-            position: absolute; top: 0; left: 0;
-        }
-
-        /* 실제 캡처 영역 */
-        #canvas-area {
-            width: 100%; height: 100%; position: absolute; top: 0; left: 0;
-            background-color: var(--bg-color); background-size: cover; background-position: center;
-            box-shadow: 0 0 25px rgba(0,0,0,0.8);
-            font-family: var(--font-family); color: var(--text-color); overflow: hidden;
-        }
-
-        /* 파일철 배경 */
+        /* 파일철 느낌 (살짝 삐뚫어짐) */
         .folder {
-            position: absolute; top: 4%; left: 4%; width: 90%; height: 92%;
-            background-color: var(--folder-color); transform: rotate(-1.5deg); 
-            border-radius: 10px 30px 10px 10px; box-shadow: 10px 10px 40px rgba(0,0,0,0.6);
-        }
-        .folder::before {
-            content: ''; position: absolute; top: -40px; right: 80px; width: 450px; height: 50px; 
-            background-color: var(--folder-color); border-radius: 20px 20px 0 0;
-        }
-        .paper-bg {
-            position: absolute; width: 86%; height: 90%; background-color: #f0f0f0; box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
-        }
-        .paper-bg.p1 { transform: rotate(2deg); top: 5%; left: 5%; }
-        .paper-bg.p2 { transform: rotate(-1deg); top: 4%; left: 6%; }
-
-        /* 메인 보고서 종이 */
-        .paper-main {
-            position: absolute; top: 4%; left: 5%;
-            width: 68%; height: 92%;
-            background-color: var(--paper-color); transform: rotate(1.5deg); 
-            box-shadow: 0 0 20px rgba(0,0,0,0.3); padding: 80px 60px; box-sizing: border-box;
-            display: block; 
+            position: absolute;
+            top: 50px; left: 50px; right: 50px; bottom: 50px;
+            background-color: var(--folder-color);
+            transform: rotate(-1.5deg);
+            border-radius: 10px;
+            box-shadow: 15px 15px 30px rgba(0,0,0,0.5);
         }
 
-        .header-section { display: flex; justify-content: space-between; align-items: flex-start; height: 430px; }
-        .info-table { width: 55%; font-size: 32px; border-collapse: collapse; }
-        .info-table td { padding: 15px 0; border-bottom: 2px solid var(--text-color); }
-        .info-table td:first-child { font-weight: bold; width: 140px; }
+        /* 보고서 종이 느낌 (바르게, 겹친 효과) */
+        .paper-stack {
+            position: absolute;
+            top: 100px; left: 150px; right: 150px; bottom: 100px;
+            background-color: var(--paper-color);
+            box-shadow: 
+                -5px 5px 0px rgba(255,255,255,0.7),
+                -10px 10px 0px rgba(255,255,255,0.4),
+                10px 10px 20px rgba(0,0,0,0.3);
+            color: var(--text-color);
+            padding: 80px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 클립 장식 */
+        .clip {
+            position: absolute;
+            top: -30px; left: 100px;
+            width: 40px; height: 120px;
+            border: 8px solid silver;
+            border-radius: 40px;
+            z-index: 5;
+        }
+
+        hr.divider {
+            border: 0;
+            border-top: 3px solid var(--text-color);
+            margin: 40px 0;
+            opacity: 0.3;
+        }
+
+        /* 입력 폼 스타일링 */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 20px;
+            font-size: 32px;
+            margin-bottom: 40px;
+            align-items: center;
+        }
+        .info-grid input[type="text"] {
+            font-size: 32px; border: none; border-bottom: 2px dashed var(--text-color);
+            background: transparent; color: var(--text-color); font-family: inherit;
+            width: 80%; outline: none;
+        }
+        .radio-group { font-size: 28px; }
+
+        /* 태그 (성향, 탐라) */
+        .tag-section { margin-bottom: 40px; }
+        .tag-section h2 { font-size: 40px; margin-bottom: 20px; }
+        .tags-container { display: flex; flex-wrap: wrap; gap: 15px; }
         
-        .profile-img-container {
-            width: 320px; height: 420px; border: 6px solid var(--text-color); position: relative; overflow: hidden; background: #ccc;
+        .tag-checkbox { display: none; }
+        .tag-label {
+            font-size: 28px; padding: 10px 30px;
+            border: 3px solid var(--text-color);
+            border-radius: 50px; cursor: pointer;
+            transition: 0.2s;
+            font-weight: bold;
         }
-        .profile-img-container img { position: absolute; transform-origin: center; }
-
-        hr { width: 100%; border: none; border-top: 4px solid var(--text-color); margin: 30px 0; }
-
-        .section-title { font-size: 32px; font-weight: bold; margin-bottom: 15px; margin-top: 10px; }
-        
-        .tag-display-area { 
-            display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;
-        }
-        
-        .tag-badge {
-            font-size: 28px; font-weight: bold; padding: 8px 22px; border: 3px solid var(--text-color); border-radius: 50px;
-        }
-        .tag-badge.selected { background-color: var(--text-color); color: var(--paper-color); }
-
-        .free-text-area {
-            display: block; width: 100%; height: 500px; 
-            font-size: 35px; white-space: pre-wrap; line-height: 1.6;
-            padding: 20px; box-sizing: border-box;
-            background-color: #f5f5f5; border-radius: 15px; border: 2px solid #ddd;
+        /* 체크 시 글자색에 맞춘 배경색 적용 */
+        .tag-checkbox:checked + .tag-label {
+            background-color: var(--text-color);
+            color: var(--paper-color);
         }
 
-        /* --- 사이드 첨부사진 구역 --- */
-        #side-photos-wrap {
-            position: absolute; right: 3%; top: 5%; width: 25%; height: 90%;
-            display: block; z-index: 50;
+        textarea.free-text {
+            width: 100%; flex-grow: 1;
+            background: transparent; border: 2px solid rgba(0,0,0,0.1);
+            color: var(--text-color); font-size: 32px; font-family: inherit;
+            resize: none; outline: none; padding: 20px; box-sizing: border-box;
         }
 
-        .attached-photo-group {
-            position: relative; background-color: var(--paper-color); 
-            padding: 15px 15px 40px 15px; box-sizing: border-box;
-            border: 2px solid #ccc; box-shadow: 3px 3px 15px rgba(0,0,0,0.2);
-            margin-bottom: 40px; display: none; 
+        /* 첨부 이미지 영역 (마스킹 테이프 효과) */
+        .image-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; /* 뒤쪽 클릭 가능하게 */
+        }
+        .draggable-img-wrapper {
+            position: absolute; top: 300px; left: 1600px;
+            pointer-events: auto;
+            background: white; padding: 15px; padding-bottom: 80px;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
+            border: 1px solid #ddd;
+        }
+        .draggable-img-wrapper img {
+            max-width: 400px; display: block;
+        }
+        /* 마스킹 테이프 CSS */
+        .masking-tape {
+            position: absolute;
+            top: -15px; left: 50%; transform: translateX(-50%) rotate(-3deg);
+            width: 150px; height: 40px;
+            background-color: rgba(245, 245, 220, 0.8); /* 반투명 아이보리 */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .img-caption {
+            position: absolute; bottom: 15px; left: 15px; right: 15px;
+            border: none; border-bottom: 2px solid #ccc;
+            font-size: 24px; font-family: 'Nanum Pen Script', cursive;
+            text-align: center; background: transparent; outline: none;
         }
 
-        .attached-photo-group::before {
-            content: ''; position: absolute; top: -12px; left: 50%;
-            transform: translateX(-50%) rotate(-4deg);
-            width: 100px; height: 28px;
-            background-color: #f5f5dc; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2); z-index: 10;
-            border-left: 2px dotted #ccc; border-right: 2px dotted #ccc;
-        }
-
-        .photo-img-viewport {
-            width: 100%; height: 250px; background: #eee; overflow: hidden; position: relative; border: 1px solid #999;
-        }
-        .photo-img-area { width: 100%; height: 100%; background-size: cover; background-position: center; transform-origin: center; }
-
-        .photo-caption {
-            width: 100%; margin-top: 15px; text-align: center; font-size: 26px;
-            color: var(--text-color); font-weight: bold; word-wrap: break-word;
-        }
     </style>
 </head>
 <body>
 
-    <div id="sidebar-wrap">
-        <div id="controls">
-            <h2>자기소개표 설정</h2>
-            
-            <div class="control-group">
-                <label>배경 색상</label>
-                <input type="color" id="bgColor" value="#1a1a1a">
-                <label style="margin-top:10px;">배경 이미지 첨부</label>
-                <input type="file" id="bgImage" accept="image/*">
-            </div>
-
-            <div class="control-group">
-                <label>파일철 색상</label>
-                <input type="color" id="folderColor" value="#508d81">
-                <label style="margin-top:10px;">종이 색상</label>
-                <input type="color" id="paperColor" value="#ffffff">
-                <label style="margin-top:10px;">글자 색상</label>
-                <input type="color" id="textColor" value="#508d81">
-            </div>
-
-            <div class="control-group">
-                <label>폰트 선택</label>
-                <select id="fontSelect">
-                    <option value="'Noto Sans KR'">Noto Sans KR</option>
-                    <option value="'Nanum Myeongjo'">Nanum Myeongjo</option>
-                    <option value="'Gowun Dodum'">Gowun Dodum</option>
-                    <option value="'Jua'">Jua</option>
-                </select>
-            </div>
-
-            <div class="control-group">
-                <label>닉네임</label>
-                <input type="text" id="inputNickname" value="닉네임">
-                
-                <label style="margin-top:10px;">나이</label>
-                <div class="radio-group">
-                    <input type="radio" name="age" id="age1" value="성인" checked><label for="age1">성인</label>
-                    <input type="radio" name="age" id="age2" value="미성년자"><label for="age2">미성년자</label>
-                    <input type="radio" name="age" id="age3" value="비밀"><label for="age3">비밀</label>
-                </div>
-                
-                <label style="margin-top:10px;">@ (아이디)</label>
-                <input type="text" id="inputId" value="@username">
-
-                <label style="margin-top:10px;">이별 방식</label>
-                <div class="radio-group">
-                    <input type="radio" name="parting" id="part1" value="블블" checked><label for="part1">블블</label>
-                    <input type="radio" name="parting" id="part2" value="블언블"><label for="part2">블언블</label>
-                </div>
-
-                <label style="margin-top:10px;">장르</label>
-                <input type="text" id="inputGenre" value="장르명">
-            </div>
-
-            <div class="control-group">
-                <label>메인 프로필 이미지</label>
-                <input type="file" id="profileImg" accept="image/*">
-                <label>크기 조절</label>
-                <input type="range" id="imgScale" min="0.1" max="3" step="0.1" value="1">
-                <label>가로 위치 (X)</label>
-                <input type="range" id="imgX" min="-500" max="500" value="0">
-                <label>세로 위치 (Y)</label>
-                <input type="range" id="imgY" min="-500" max="500" value="0">
-                <label>방향 (회전)</label>
-                <input type="range" id="imgRotate" min="-180" max="180" value="0">
-            </div>
-
-            <div class="control-group">
-                <label>성향 (자유 선택)</label>
-                <div class="checkbox-group" id="traitChecks">
-                    <input type="checkbox" id="t1" value="HL"><label for="t1">HL</label>
-                    <input type="checkbox" id="t2" value="BL"><label for="t2">BL</label>
-                    <input type="checkbox" id="t3" value="GL"><label for="t3">GL</label>
-                    <input type="checkbox" id="t4" value="NCP"><label for="t4">NCP</label>
-                    <input type="checkbox" id="t5" value="ALL"><label for="t5">ALL</label>
-                    <input type="checkbox" id="t6" value="Dream"><label for="t6">Dream</label>
-                    <input type="checkbox" id="t7" value="CP"><label for="t7">CP</label>
-                </div>
-            </div>
-
-            <div class="control-group">
-                <label>탐라 (자유 선택)</label>
-                <div class="checkbox-group" id="tlChecks">
-                    <input type="checkbox" id="tl1" value="구독"><label for="tl1">구독</label>
-                    <input type="checkbox" id="tl2" value="소비"><label for="tl2">소비</label>
-                    <input type="checkbox" id="tl3" value="로그"><label for="tl3">로그</label>
-                    <input type="checkbox" id="tl4" value="연성"><label for="tl4">연성</label>
-                    <input type="checkbox" id="tl5" value="사담"><label for="tl5">사담</label>
-                    <input type="checkbox" id="tl6" value="RT"><label for="tl6">RT</label>
-                    <input type="checkbox" id="tl7" value="인용"><label for="tl7">인용</label>
-                    <input type="checkbox" id="tl8" value="마음"><label for="tl8">마음</label>
-                    <input type="checkbox" id="tl9" value="탐라 대화"><label for="tl9">탐라 대화</label>
-                    <input type="checkbox" id="tl10" value="프롬프트"><label for="tl10">프롬프트</label>
-                </div>
-            </div>
-
-            <div class="control-group">
-                <label>자유 작성란</label>
-                <textarea id="inputFreeText" rows="6">자유롭게 입력하세요.</textarea>
-            </div>
-
-            <div class="control-group">
-                <label>사이드 보고서 사진 (마스킹 테이프 고정)</label>
-                <hr style="margin:10px 0; border-top:1px solid #555;">
-                
-                <label>사진 1</label>
-                <input type="file" id="attach1" accept="image/*">
-                <input type="range" id="scale1" min="0.1" max="3" step="0.1" value="1">
-                <input type="text" id="attachText1" placeholder="사진 1 아래 글씨 입력...">
-                <hr style="margin:10px 0; border-top:1px solid #555;">
-                
-                <label>사진 2</label>
-                <input type="file" id="attach2" accept="image/*">
-                <input type="range" id="scale2" min="0.1" max="3" step="0.1" value="1">
-                <input type="text" id="attachText2" placeholder="사진 2 아래 글씨 입력...">
-                <hr style="margin:10px 0; border-top:1px solid #555;">
-                
-                <label>사진 3</label>
-                <input type="file" id="attach3" accept="image/*">
-                <input type="range" id="scale3" min="0.1" max="3" step="0.1" value="1">
-                <input type="text" id="attachText3" placeholder="사진 3 아래 글씨 입력...">
-                <hr style="margin:10px 0; border-top:1px solid #555;">
-                
-                <label>사진 4</label>
-                <input type="file" id="attach4" accept="image/*">
-                <input type="range" id="scale4" min="0.1" max="3" step="0.1" value="1">
-                <input type="text" id="attachText4" placeholder="사진 4 아래 글씨 입력...">
-            </div>
+    <div class="panel">
+        <h3>🎨 기본 설정</h3>
+        <div class="control-group">
+            <label>화면 줌 (미리보기용)</label>
+            <input type="range" id="zoomCtrl" min="0.1" max="1" step="0.05" value="0.35">
         </div>
+        <div class="control-group">
+            <label>전체 배경색</label>
+            <input type="color" id="bgColor" value="#2c2c2c">
+        </div>
+        <div class="control-group">
+            <label>전체 배경 이미지 첨부</label>
+            <input type="file" id="bgImg" accept="image/*">
+        </div>
+        <div class="control-group">
+            <label>파일철 색상</label>
+            <input type="color" id="folderColor" value="#8b0000">
+        </div>
+        <div class="control-group">
+            <label>종이 색상</label>
+            <input type="color" id="paperColor" value="#ffffff">
+        </div>
+        <div class="control-group">
+            <label>기본 글자 색상</label>
+            <input type="color" id="textColor" value="#000000">
+        </div>
+        <div class="control-group">
+            <label>폰트 선택</label>
+            <select id="fontSelect">
+                <option value="'Noto Sans KR', sans-serif">Noto Sans KR</option>
+                <option value="'Nanum Gothic', sans-serif">Nanum Gothic</option>
+                <option value="'Nanum Myeongjo', serif">Nanum Myeongjo</option>
+                <option value="'Nanum Pen Script', cursive">Nanum Pen Script</option>
+            </select>
+        </div>
+        <button class="action-btn" onclick="saveAsImage()">💾 저장하기</button>
+    </div>
 
-        <div id="save-section">
-            <button class="save-btn" onclick="saveImage()">저장하기</button>
+    <div class="workspace" id="workspace">
+        <div class="canvas-container" id="captureArea">
+            <div class="folder"></div>
+            <div class="paper-stack" id="paperContent">
+                <div class="clip"></div>
+                
+                <div class="info-grid">
+                    <b>닉네임</b> 
+                    <div>
+                        <input type="text" placeholder="닉네임을 입력하세요">
+                        <span class="radio-group">
+                            <label><input type="radio" name="age" checked> 성인</label>
+                            <label><input type="radio" name="age"> 미성년자</label>
+                            <label><input type="radio" name="age"> 비밀</label>
+                        </span>
+                    </div>
+
+                    <b>@ (아이디)</b> 
+                    <input type="text" placeholder="@twitter_id">
+
+                    <b>이별 방식</b>
+                    <div class="radio-group">
+                        <label><input type="radio" name="bye" checked> 블블</label>
+                        <label><input type="radio" name="bye"> 블언블</label>
+                    </div>
+
+                    <b>장르</b>
+                    <input type="text" placeholder="주로 파는 장르">
+                </div>
+
+                <hr class="divider">
+
+                <div class="tag-section">
+                    <h2>성향</h2>
+                    <div class="tags-container">
+                        <input type="checkbox" id="t1" class="tag-checkbox"><label for="t1" class="tag-label">HL</label>
+                        <input type="checkbox" id="t2" class="tag-checkbox"><label for="t2" class="tag-label">BL</label>
+                        <input type="checkbox" id="t3" class="tag-checkbox"><label for="t3" class="tag-label">GL</label>
+                        <input type="checkbox" id="t4" class="tag-checkbox"><label for="t4" class="tag-label">NCP</label>
+                        <input type="checkbox" id="t5" class="tag-checkbox"><label for="t5" class="tag-label">ALL</label>
+                        <input type="checkbox" id="t6" class="tag-checkbox"><label for="t6" class="tag-label">Dream</label>
+                        <input type="checkbox" id="t7" class="tag-checkbox"><label for="t7" class="tag-label">CP</label>
+                    </div>
+                </div>
+
+                <hr class="divider">
+
+                <div class="tag-section">
+                    <h2>탐라</h2>
+                    <div class="tags-container">
+                        <input type="checkbox" id="f1" class="tag-checkbox"><label for="f1" class="tag-label">구독</label>
+                        <input type="checkbox" id="f2" class="tag-checkbox"><label for="f2" class="tag-label">소비</label>
+                        <input type="checkbox" id="f3" class="tag-checkbox"><label for="f3" class="tag-label">로그</label>
+                        <input type="checkbox" id="f4" class="tag-checkbox"><label for="f4" class="tag-label">연성</label>
+                        <input type="checkbox" id="f5" class="tag-checkbox"><label for="f5" class="tag-label">사담</label>
+                        <input type="checkbox" id="f6" class="tag-checkbox"><label for="f6" class="tag-label">RT</label>
+                        <input type="checkbox" id="f7" class="tag-checkbox"><label for="f7" class="tag-label">인용</label>
+                        <input type="checkbox" id="f8" class="tag-checkbox"><label for="f8" class="tag-label">마음</label>
+                        <input type="checkbox" id="f9" class="tag-checkbox"><label for="f9" class="tag-label">탐라 대화</label>
+                        <input type="checkbox" id="f10" class="tag-checkbox"><label for="f10" class="tag-label">프롬프트</label>
+                        <input type="checkbox" id="f11" class="tag-checkbox"><label for="f11" class="tag-label">AI 이미지</label>
+                    </div>
+                </div>
+
+                <hr class="divider">
+                <h2>자유 작성</h2>
+                <textarea class="free-text" placeholder="자유롭게 적어주세요..."></textarea>
+            </div>
+
+            <div class="image-layer" id="imageLayer"></div>
         </div>
     </div>
 
-    <div id="preview-container">
-        <div id="scale-box">
-            <div id="zoom-wrapper">
-                <div id="canvas-area">
-                    
-                    <div class="folder">
-                        <div class="paper-bg p1"></div>
-                        <div class="paper-bg p2"></div>
-                        
-                        <div class="paper-main">
-                            <div class="header-section">
-                                <table class="info-table">
-                                    <tr>
-                                        <td>NAME</td>
-                                        <td><span id="outNickname">닉네임</span> <span id="outAge" style="font-size:24px; border:3px solid; padding:2px 10px; border-radius:12px; margin-left:10px;">성인</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td>@</td>
-                                        <td id="outId">@username</td>
-                                    </tr>
-                                    <tr>
-                                        <td>이별</td>
-                                        <td id="outParting">블블</td>
-                                    </tr>
-                                    <tr>
-                                        <td>장르</td>
-                                        <td id="outGenre">장르명</td>
-                                    </tr>
-                                </table>
-                                
-                                <div class="profile-img-container">
-                                    <img id="outProfileImg" src="" style="display:none; width:100%;">
-                                </div>
-                            </div>
-                            
-                            <hr>
-                            
-                            <div class="section-title">성향</div>
-                            <div class="tag-display-area" id="outTraits"></div>
-                            
-                            <div class="section-title">탐라</div>
-                            <div class="tag-display-area" id="outTl"></div>
-                            
-                            <hr>
-                            
-                            <div class="free-text-area" id="outFreeText">자유롭게 입력하세요.</div>
-                        </div>
-                    </div>
-
-                    <div id="side-photos-wrap">
-                        <div class="attached-photo-group" id="box1" style="transform: rotate(2deg);">
-                            <div class="photo-img-viewport"><div class="photo-img-area" id="outAttach1"></div></div>
-                            <div class="photo-caption" id="outAttachText1"></div>
-                        </div>
-                        <div class="attached-photo-group" id="box2" style="transform: rotate(-1deg);">
-                            <div class="photo-img-viewport"><div class="photo-img-area" id="outAttach2"></div></div>
-                            <div class="photo-caption" id="outAttachText2"></div>
-                        </div>
-                        <div class="attached-photo-group" id="box3" style="transform: rotate(3deg);">
-                            <div class="photo-img-viewport"><div class="photo-img-area" id="outAttach3"></div></div>
-                            <div class="photo-caption" id="outAttachText3"></div>
-                        </div>
-                        <div class="attached-photo-group" id="box4" style="transform: rotate(-2deg);">
-                            <div class="photo-img-viewport"><div class="photo-img-area" id="outAttach4"></div></div>
-                            <div class="photo-caption" id="outAttachText4"></div>
-                        </div>
-                    </div>
-
-                </div>
+    <div class="panel">
+        <h3>📎 파일 첨부 (최대 4장)</h3>
+        <input type="file" id="addImg" accept="image/*" class="control-group">
+        <p style="font-size:12px; color:#aaa;">* 이미지를 추가하고 아래에서 조절하세요.</p>
+        
+        <div id="imageControls" style="display:none;">
+            <h4>현재 선택된 이미지 조절</h4>
+            <div class="control-group">
+                <label>크기</label>
+                <input type="range" id="imgScale" min="0.5" max="3" step="0.1" value="1">
             </div>
+            <div class="control-group">
+                <label>회전 (방향)</label>
+                <input type="range" id="imgRotate" min="-180" max="180" value="0">
+            </div>
+            <div class="control-group">
+                <label>좌우 위치 (X)</label>
+                <input type="range" id="imgX" min="-500" max="2160" value="1600">
+            </div>
+            <div class="control-group">
+                <label>상하 위치 (Y)</label>
+                <input type="range" id="imgY" min="-200" max="1730" value="300">
+            </div>
+            <button onclick="removeActiveImage()" style="width:100%; padding:10px; background:red; color:white; border:none; margin-top:10px;">이미지 삭제</button>
         </div>
     </div>
 
     <script>
+        // CSS 변수 연동 (색상)
         const root = document.documentElement;
-
-        document.getElementById('bgColor').addEventListener('input', (e) => { root.style.setProperty('--bg-color', e.target.value); });
-        document.getElementById('folderColor').addEventListener('input', (e) => { root.style.setProperty('--folder-color', e.target.value); });
-        document.getElementById('paperColor').addEventListener('input', (e) => { root.style.setProperty('--paper-color', e.target.value); });
-        document.getElementById('textColor').addEventListener('input', (e) => { root.style.setProperty('--text-color', e.target.value); });
-        document.getElementById('fontSelect').addEventListener('change', (e) => { root.style.setProperty('--font-family', e.target.value); });
-
-        document.getElementById('bgImage').addEventListener('change', function(e) {
-            if(e.target.files[0]) {
-                const url = URL.createObjectURL(e.target.files[0]);
-                document.getElementById('canvas-area').style.backgroundImage = `url(${url})`;
-            }
+        document.getElementById('bgColor').addEventListener('input', e => root.style.setProperty('--bg-color', e.target.value));
+        document.getElementById('folderColor').addEventListener('input', e => root.style.setProperty('--folder-color', e.target.value));
+        document.getElementById('paperColor').addEventListener('input', e => root.style.setProperty('--paper-color', e.target.value));
+        document.getElementById('textColor').addEventListener('input', e => root.style.setProperty('--text-color', e.target.value));
+        
+        // 폰트 연동
+        document.getElementById('fontSelect').addEventListener('change', e => {
+            document.body.style.fontFamily = e.target.value;
+            document.querySelectorAll('input[type="text"], textarea').forEach(el => el.style.fontFamily = e.target.value);
         });
 
-        const bindText = (inputId, outId) => {
-            document.getElementById(inputId).addEventListener('input', (e) => { document.getElementById(outId).innerText = e.target.value; });
-        };
-        bindText('inputNickname', 'outNickname');
-        bindText('inputId', 'outId');
-        bindText('inputGenre', 'outGenre');
-        bindText('inputFreeText', 'outFreeText');
-
-        document.getElementsByName('age').forEach(radio => {
-            radio.addEventListener('change', (e) => { document.getElementById('outAge').innerText = e.target.value; });
-        });
-        document.getElementsByName('parting').forEach(radio => {
-            radio.addEventListener('change', (e) => { document.getElementById('outParting').innerText = e.target.value; });
+        // 줌 컨트롤
+        document.getElementById('zoomCtrl').addEventListener('input', e => {
+            document.getElementById('captureArea').style.transform = `scale(${e.target.value})`;
         });
 
-        const updateTags = (containerId, outId) => {
-            const container = document.getElementById(containerId);
-            const checkboxes = container.querySelectorAll('input[type="checkbox"]');
-            const outArea = document.getElementById(outId);
-            const render = () => {
-                outArea.innerHTML = '';
-                checkboxes.forEach(cb => {
-                    const div = document.createElement('div');
-                    div.className = 'tag-badge ' + (cb.checked ? 'selected' : '');
-                    div.innerText = cb.value;
-                    outArea.appendChild(div);
-                });
-            };
-            checkboxes.forEach(cb => cb.addEventListener('change', render));
-            render();
-        };
-        updateTags('traitChecks', 'outTraits');
-        updateTags('tlChecks', 'outTl');
-
-        const profileImg = document.getElementById('outProfileImg');
-        let imgState = { scale: 1, x: 0, y: 0, rotate: 0 };
-        const updateImgTransform = () => {
-            profileImg.style.transform = `translate(${imgState.x}px, ${imgState.y}px) scale(${imgState.scale}) rotate(${imgState.rotate}deg)`;
-        };
-        document.getElementById('profileImg').addEventListener('change', (e) => {
-            if(e.target.files[0]) {
-                profileImg.src = URL.createObjectURL(e.target.files[0]);
-                profileImg.style.display = 'block';
-            }
-        });
-        document.getElementById('imgScale').addEventListener('input', (e) => { imgState.scale = e.target.value; updateImgTransform(); });
-        document.getElementById('imgX').addEventListener('input', (e) => { imgState.x = e.target.value; updateImgTransform(); });
-        document.getElementById('imgY').addEventListener('input', (e) => { imgState.y = e.target.value; updateImgTransform(); });
-        document.getElementById('imgRotate').addEventListener('input', (e) => { imgState.rotate = e.target.value; updateImgTransform(); });
-
-        const handleAttach = (index) => {
-            const fileInput = document.getElementById(`attach${index}`);
-            const scaleInput = document.getElementById(`scale${index}`);
-            const textInput = document.getElementById(`attachText${index}`);
-            const box = document.getElementById(`box${index}`);
-            const imgArea = document.getElementById(`outAttach${index}`);
-            const textArea = document.getElementById(`outAttachText${index}`);
-
-            fileInput.addEventListener('change', (e) => {
-                if(e.target.files[0]) {
-                    const url = URL.createObjectURL(e.target.files[0]);
-                    box.style.display = 'block'; 
-                    imgArea.style.backgroundImage = `url(${url})`;
+        // 전체 배경 이미지 업로드
+        document.getElementById('bgImg').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('workspace').style.backgroundImage = `url(${event.target.result})`;
                 }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 사이드 이미지 첨부 및 제어 로직
+        let imgCount = 0;
+        let activeImage = null;
+        
+        document.getElementById('addImg').addEventListener('change', function(e) {
+            if(imgCount >= 4) { alert('이미지는 최대 4장까지만 추가 가능합니다.'); return; }
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const layer = document.getElementById('imageLayer');
+                
+                // 래퍼 생성 (마스킹 테이프, 이미지, 텍스트 포함)
+                const wrapper = document.createElement('div');
+                wrapper.className = 'draggable-img-wrapper';
+                wrapper.dataset.scale = 1;
+                wrapper.dataset.rotate = (Math.random() * 20 - 10); // 초기 약간 랜덤 회전
+                wrapper.dataset.x = 1600 - (imgCount * 100);
+                wrapper.dataset.y = 300 + (imgCount * 200);
+                
+                // 초기 위치 적용
+                updateImageTransform(wrapper);
+
+                wrapper.innerHTML = `
+                    <div class="masking-tape"></div>
+                    <img src="${event.target.result}">
+                    <input type="text" class="img-caption" placeholder="메모 추가">
+                `;
+
+                // 클릭 시 해당 이미지 활성화 (우측 컨트롤러 연동)
+                wrapper.addEventListener('click', function() {
+                    activeImage = wrapper;
+                    document.getElementById('imageControls').style.display = 'block';
+                    
+                    // 슬라이더 값 동기화
+                    document.getElementById('imgScale').value = wrapper.dataset.scale;
+                    document.getElementById('imgRotate').value = wrapper.dataset.rotate;
+                    document.getElementById('imgX').value = wrapper.dataset.x;
+                    document.getElementById('imgY').value = wrapper.dataset.y;
+                    
+                    // 테두리로 활성화 표시
+                    document.querySelectorAll('.draggable-img-wrapper').forEach(el => el.style.border = '1px solid #ddd');
+                    wrapper.style.border = '3px solid #4CAF50';
+                });
+
+                layer.appendChild(wrapper);
+                wrapper.click(); // 방금 추가한 이미지 자동 선택
+                imgCount++;
+                e.target.value = ''; // input 초기화
+            }
+            reader.readAsDataURL(file);
+        });
+
+        // 슬라이더 제어 로직
+        function attachSliderEvent(id, datasetKey) {
+            document.getElementById(id).addEventListener('input', e => {
+                if(!activeImage) return;
+                activeImage.dataset[datasetKey] = e.target.value;
+                updateImageTransform(activeImage);
             });
-            scaleInput.addEventListener('input', (e) => { imgArea.style.transform = `scale(${e.target.value})`; });
-            textInput.addEventListener('input', (e) => { textArea.innerText = e.target.value; });
-        };
-        [1, 2, 3, 4].forEach(handleAttach);
+        }
+        attachSliderEvent('imgScale', 'scale');
+        attachSliderEvent('imgRotate', 'rotate');
+        attachSliderEvent('imgX', 'x');
+        attachSliderEvent('imgY', 'y');
 
-        // 캡처 깨짐 원천 차단 로직 (절대 좌표계 독립 캡처)
-        function saveImage() {
-            const canvasArea = document.getElementById('canvas-area');
-            const oldTransform = canvasArea.style.transform;
-            const oldPosition = canvasArea.style.position;
-            const oldTop = canvasArea.style.top;
-            const oldLeft = canvasArea.style.left;
-            const oldZIndex = canvasArea.style.zIndex;
+        function updateImageTransform(el) {
+            el.style.transform = `translate(${el.dataset.x}px, ${el.dataset.y}px) rotate(${el.dataset.rotate}deg) scale(${el.dataset.scale})`;
+        }
 
-            // 캡처 시 브라우저 스크롤, 크기 조절 간섭을 0%로 만들기 위해 화면 밖 최상단으로 분리
-            canvasArea.style.transform = 'none'; // 스케일 완전 제거
-            canvasArea.style.position = 'fixed'; 
-            canvasArea.style.top = '0';
-            canvasArea.style.left = '0';
-            canvasArea.style.zIndex = '9999';
+        function removeActiveImage() {
+            if(activeImage) {
+                activeImage.remove();
+                activeImage = null;
+                imgCount--;
+                document.getElementById('imageControls').style.display = 'none';
+            }
+        }
 
-            // 브라우저가 이동된 요소를 완벽하게 새로 그릴 수 있도록 0.5초 대기
+        // 고화질 저장 (html2canvas)
+        function saveAsImage() {
+            const captureArea = document.getElementById('captureArea');
+            
+            // 저장 전 준비: 줌을 풀고 테두리 선택 효과 제거
+            const originalTransform = captureArea.style.transform;
+            captureArea.style.transform = 'scale(1)'; 
+            if(activeImage) activeImage.style.border = '1px solid #ddd';
+
             setTimeout(() => {
-                html2canvas(canvasArea, {
-                    scale: 1, 
-                    useCORS: true, 
-                    backgroundColor: null, 
-                    width: 2160,
-                    height: 1730,
-                    scrollX: 0,
-                    scrollY: 0,
-                    windowWidth: 2160,
-                    windowHeight: 1730
+                html2canvas(captureArea, {
+                    scale: 1, // 원본 해상도(2160x1730) 유지
+                    useCORS: true,
+                    backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg-color').trim()
                 }).then(canvas => {
                     const link = document.createElement('a');
                     link.download = '자기소개표.png';
-                    link.href = canvas.toDataURL('image/png', 1.0);
+                    link.href = canvas.toDataURL('image/png');
                     link.click();
                     
-                    // 캡처 완료 후 원상 복구
-                    canvasArea.style.transform = oldTransform;
-                    canvasArea.style.position = oldPosition;
-                    canvasArea.style.top = oldTop;
-                    canvasArea.style.left = oldLeft;
-                    canvasArea.style.zIndex = oldZIndex;
+                    // 저장 후 원상복구
+                    captureArea.style.transform = originalTransform;
                 });
-            }, 500); 
+            }, 100);
         }
     </script>
 </body>
